@@ -9,7 +9,9 @@ config.read('config/basic.ini')
 
 
 def main() -> None:
-    logger.info('Inside main')
+    
+    logger.info('Setting environment variable')
+    print(config['DEFAULT']['TEST'])
 
 
 
