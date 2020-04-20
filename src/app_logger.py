@@ -1,12 +1,18 @@
 import logging
 import logging.handlers
 import os
-
+from pathlib import Path
 import sys
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config/basic.ini')
 
 
 # create file handler which logs even debug messages
-fh = logging.handlers.TimedRotatingFileHandler('app.log', when='H', backupCount=10)
+log_name = os.path.join(config['HOME']['HOME'], 'logs', config['DEFAULT']['log_filename'])
+Path(log_name).touch(exist_ok=True)
+fh = logging.handlers.TimedRotatingFileHandler(log_name, when='H', backupCount=10)
 fh.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s [%(levelname)s.%(name)s] - %(message)s')
 fh.setFormatter(formatter)
