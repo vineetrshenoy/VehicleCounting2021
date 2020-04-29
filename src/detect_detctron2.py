@@ -182,12 +182,32 @@ class DetectDetectron:
         detections = [car_detections, bus_detections, truck_detections]
         return detections
 
+    ##
+    #   Runs the detection workflow
+    #   @param img Input image
+    #   @param detections Post-processed detections
+    #   @returns 
+    #
+    def visualize_detections(self, img, detections):
+        
+        for vehicle in detections:
+
+            for bbox in vehicle:
+
+                top_left = (int(bbox[0]), int(bbox[1]))
+                bottom_right = (int(bbox[2]), int(bbox[3]))
+                cv2.rectangle(img, top_left, bottom_right, (0, 0, 255), 2)
+        
+        return img
 
     ##
     #   Runs the detection workflow
     #   @param filepath Folder containing extracted images 
     #
     def run_predictions(self, filepath: str):
+
+        fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
+        outputVideo = cv2.VideoWriter('vid'  + ".avi", fourcc, 10, (1920, 1080))
 
         detection_dict = {}
         files = os.listdir(filepath)
@@ -199,11 +219,15 @@ class DetectDetectron:
             outputs = self.predictor(img) #generate detections on image
             detections = self.process_outputs(outputs, filepath.split('/')[-1])
             frame = self.get_frame_number(os.path.join(filepath, path))
+            
+            img = self.visualize_detections(img, detections)
+            outputVideo.write(img)
+
             detection_dict[frame] = detections
-
-
-
-
+        
+        outputVideo.release()
+        with open(filepath.split('/')[-1] + '.pkl', 'wb') as handle:
+            pickle.dump(detection_dict, handle)           
 
 if __name__ == '__main__':
 
