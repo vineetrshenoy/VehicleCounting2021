@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 import cv2
 import configparser
+from torch import cuda
 
 from detectron2.modeling import build_model
 from detectron2.config import get_cfg
@@ -13,13 +14,7 @@ from detectron2.structures.boxes import BoxMode
 
 from tqdm import tqdm
 import matplotlib.path as mplPath
-'''
 
-Build a "Predictor" class that loads the models
-
-serve a set of files to produce an output AND VISUALIZE
-
-'''
 config = configparser.ConfigParser()
 config.read('config/basic.ini')
 
@@ -85,21 +80,17 @@ paths = {
 	'cam_20': cam_20_path
 }
 
-
-
 ##
 #   DetectDetectron class for performing detections using detectron2
 #
 class DetectDetectron:
 
-
-
     def __init__(self):
         self.paths = paths
+        self.config = config['DETECTION']
         predictor, cfg = self.load_model()
         self.predictor = predictor
         self.cfg = cfg
-
 
     ##
     # Loads a model for inference
@@ -108,13 +99,14 @@ class DetectDetectron:
     def load_model(self):
         
         cfg = get_cfg()
-        cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/retinanet_R_50_FPN_3x.yaml"))
+        cfg.merge_from_file(model_zoo.get_config_file(self.config['config_file']))
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7 # set threshold for this model
-        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/retinanet_R_50_FPN_3x.yaml")
+        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(self.config['config_file'])
+        if cuda.is_available():
+            cfg.MODEL.DEVICE = 'cuda:0'
         predictor = DefaultPredictor(cfg)
 
         return predictor, cfg
-
 
     ##
     #   Processes a filename
@@ -188,7 +180,7 @@ class DetectDetectron:
     #   @param detections Post-processed detections
     #   @returns 
     #
-    def visualize_detections(self, img, detections):
+    def visualize_detections(self, img, detections, file_name):
         
         for vehicle in detections:
 
@@ -197,6 +189,7 @@ class DetectDetectron:
                 top_left = (int(bbox[0]), int(bbox[1]))
                 bottom_right = (int(bbox[2]), int(bbox[3]))
                 cv2.rectangle(img, top_left, bottom_right, (0, 0, 255), 2)
+                cv2.imwrite(file_name, img)
         
         return img
 
@@ -206,28 +199,33 @@ class DetectDetectron:
     #
     def run_predictions(self, filepath: str):
 
-        fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
-        outputVideo = cv2.VideoWriter('vid'  + ".avi", fourcc, 10, (1920, 1080))
+        if int(self.config['visualize']) == 1: #create a folder to store visualizations
+            camera_ident = filepath.split('/')[-1]
+            os.makedirs(os.path.join('vc_outputs', 'detection_output', camera_ident), exist_ok=True)
 
         detection_dict = {}
-        files = os.listdir(filepath)
+        files = sorted(os.listdir(filepath))
 
-        for path in tqdm(files):
+        for i in tqdm(range(0, len(files), int(self.config['step']))): #for every camera frame
 
-            img = cv2.imread(os.path.join(filepath, path))
+            img = cv2.imread(os.path.join(filepath, files[i])) #read the frame
 
             outputs = self.predictor(img) #generate detections on image
             detections = self.process_outputs(outputs, filepath.split('/')[-1])
-            frame = self.get_frame_number(os.path.join(filepath, path))
+            frame = self.get_frame_number(os.path.join(filepath, files[i]))
             
-            img = self.visualize_detections(img, detections)
-            outputVideo.write(img)
+            if int(self.config['visualize']) == 1:
 
+                file_name = os.path.join('vc_outputs', 'detection_output', camera_ident, files[i])
+                self.visualize_detections(img, detections, file_name)
+                
             detection_dict[frame] = detections
         
-        outputVideo.release()
+        
         with open(filepath.split('/')[-1] + '.pkl', 'wb') as handle:
             pickle.dump(detection_dict, handle)           
+
+        return detection_dict
 
 if __name__ == '__main__':
 

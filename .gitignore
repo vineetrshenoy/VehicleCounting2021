@@ -1,2 +1,5 @@
 __pycache__/
 pytoch/
+logs/
+pytorch/
+pytorch.def
