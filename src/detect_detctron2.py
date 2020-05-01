@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import configparser
 from torch import cuda
+import app_logger
 
 from detectron2.modeling import build_model
 from detectron2.config import get_cfg
@@ -14,6 +15,8 @@ from detectron2.structures.boxes import BoxMode
 
 from tqdm import tqdm
 import matplotlib.path as mplPath
+
+logger = app_logger.get_logger('detect_detectron')
 
 config = configparser.ConfigParser()
 config.read('config/basic.ini')
