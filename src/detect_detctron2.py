@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import configparser
 from torch import cuda
+import app_logger
 
 from detectron2.modeling import build_model
 from detectron2.config import get_cfg
@@ -14,6 +15,8 @@ from detectron2.structures.boxes import BoxMode
 
 from tqdm import tqdm
 import matplotlib.path as mplPath
+
+logger = app_logger.get_logger('detect_detectron')
 
 config = configparser.ConfigParser()
 config.read('config/basic.ini')
@@ -85,13 +88,13 @@ paths = {
 #
 class DetectDetectron:
 
-    def __init__(self):
+    def __init__(self, cam_ident):
         self.paths = paths
         self.config = config['DETECTION']
         predictor, cfg = self.load_model()
         self.predictor = predictor
         self.cfg = cfg
-
+        self.cam_ident = cam_ident
     ##
     # Loads a model for inference
     # @returns DefaultPredictor, cfg object
