@@ -88,13 +88,13 @@ paths = {
 #
 class DetectDetectron:
 
-    def __init__(self):
+    def __init__(self, cam_ident):
         self.paths = paths
         self.config = config['DETECTION']
         predictor, cfg = self.load_model()
         self.predictor = predictor
         self.cfg = cfg
-
+        self.cam_ident = cam_ident
     ##
     # Loads a model for inference
     # @returns DefaultPredictor, cfg object

@@ -16,17 +16,22 @@ config.read('config/basic.ini')
 class Tracker():
 
     ##
-    # Workflow for the tracker object
-    # @returns 
+    # Initializes the Tracker object
+    # 
     #
-    def __init__(self):
+    def __init__(self, cam_ident):
         self.config = config['TRACKING']
+        self.cam_ident = cam_ident
+
+        os.makedirs(os.path.join('src', 'vc_outputs', 'tracker_output', self.cam_ident), exist_ok=True)
+        self.out_dir = os.path.join('src', 'vc_outputs', 'tracker_output', self.cam_ident)
         print()
 
 
     ##
-    # Workflow for the tracker object
-    # @returns 
+    # Performs manipulations on tracker output and prepares object for next 
+    # step in Pipelline
+    # 
     #
     def process_tracker_output(self, tracker_output, frameBox, trackBox, frameCount):
         
@@ -45,10 +50,12 @@ class Tracker():
             
     
     ##
-    # Workflow for the tracker object
-    # @returns 
+    # Performs tracking on a per-class basis
+    # @param vehicle dtcs List of lists, where nested list are detections
+    # and each list corresponds to a frame (arranged in order)
+    # @returns frameBox, trackBox Tracked objects
     #
-    def per_vehicle_tracker(self, vehicle_dtcs):
+    def per_class_tracker(self, vehicle_dtcs):
         
         objectTracker = Sort()
         frameBox = {}
@@ -62,9 +69,9 @@ class Tracker():
             NMS = np.array(NMS)
             
             tracker_output = objectTracker.update(NMS)
-            self.process_tracker_output(tracker_output, frameBox, trackBox, frameCount)
+            self.process_tracker_output(tracker_output, frameBox, trackBox, frameCount + 1)
 
-
+        objectTracker.reset()
         return frameBox, trackBox
 
 
@@ -80,26 +87,29 @@ class Tracker():
         for classID, className in zip([0, 1, 2], ['Car', 'Bus', 'Truck']):
 
             vehicle_detections = [detections[frame][classID] for frame in sorted(detections.keys())]
-            frameBox, trackBox = self.per_vehicle_tracker(vehicle_detections)
+            frameBox, trackBox = self.per_class_tracker(vehicle_detections)
 
             # Save frameBox and trackBox as a pickle file and return 
-            '''
+            #TODO: Fix Paths
             if len(trackBox.keys()) !=0:
-                basename = os.path.basename('/vulcan/scratch/vshenoy/aicity2020/other_detection_files/cam_5_rain.pkl').split('.')[0]
-                pickle.dump(trackBox, open("/vulcan/scratch/vshenoy/aicity2020/tracker_output/" + "Track_" + className + "_" + basename, "wb"))
-                pickle.dump(frameBox, open("/vulcan/scratch/vshenoy/aicity2020/tracker_output/" + "Frame_" + className + "_" + basename, "wb"))
-            '''
-            return frameBox, trackBox
+                trackName = "Track_" + className + "_" + self.cam_ident + '.pkl'
+                frameName = "Frame_" + className + "_" + self.cam_ident + '.pkl'
+                trackName = os.path.join(self.out_dir, trackName)
+                frameName = os.path.join(self.out_dir, frameName)
+                pickle.dump(trackBox, open(trackName, "wb"))
+                pickle.dump(frameBox, open(frameName, "wb"))
+            
+            #return frameBox, trackBox
 
 
 
 if __name__=='__main__':
 
 
-    with open('/vulcan/scratch/vshenoy/aicity2020/other_detection_files/cam_5_rain.pkl', 'rb') as f:
+    with open('/vulcan/scratch/vshenoy/aicity2020/other_detection_files/cam_10.pkl', 'rb') as f:
         data = pickle.load(f)
 
-    tr = Tracker()
+    tr = Tracker('cam_10')
     tr.run_tracker(data)
 
     
