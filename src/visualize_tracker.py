@@ -5,17 +5,11 @@ import cv2
 import pickle
 from tqdm import tqdm
 
-logger = app_logger.get_logger('tracker')
+logger = app_logger.get_logger('tracker_visualization')
 
 config = configparser.ConfigParser()
 config.read('config/basic.ini')
 
-'''
-    1. Need images directory
-    2. Camera FPS
-    3. Tracker files
-
-'''
 ##
 # Workflow for the tracker object
 # @returns 
@@ -31,35 +25,45 @@ class VisualizeTracker():
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
         frame_dim = (self.default['frame_width'], self.default['frame_height'])
-        self.out_video = cv2.VideoWriter(video_name, self.fourcc, 10, (1920, 1080))
+        self.out_video = cv2.VideoWriter(video_name, self.fourcc, 10, (1920, 1080)) #TODO: CAN NOT HARDCODE
         
         print()
 
-
+    ##
+    # Loads the tracker files needed for visualization
+    # @returns framepkl, trackpkl
+    #
     def load_files(self):
 
         framepkl = {}
         trackpkl = {}
 
-        for vehicleType in ['Car', 'Bus', 'Truck']:
+        for vehicleType in ['Car', 'Bus', 'Truck']: #Usually Track_* and Frame_* for each vehicle
 
             frameName = "Frame_" + vehicleType + "_" + self.cam_ident + ".pkl"
             trackName = "Track_" + vehicleType + "_" + self.cam_ident + ".pkl"
-            if os.path.exists(os.path.join(self.out_dir, frameName)):
+            if os.path.exists(os.path.join(self.out_dir, frameName)): #If the files exist, load them
                 framepkl[vehicleType] = pickle.load(open(os.path.join(self.out_dir, frameName), 'rb'))
                 trackpkl[vehicleType] = pickle.load(open(os.path.join(self.out_dir, trackName), 'rb'))
 
         return framepkl, trackpkl
 
-    
+    ##
+    # Draws the bounding boxes on the image frame and adds to video
+    # @param img The cv2-loaded image
+    # @param framepkl Dictionary indexed by frame number with tracking results
+    # @param trackpkl Dictionary indexed by objectID with tracking results
+    # @param frameNumber The frame count to put in correct order
+    #
     def write_video_frame(self, img, framepkl, trackpkl, frameNumber):
+        #TODO: Write this code more elegantly
 
+        for vehicleType in framepkl.keys(): #Car, Truck, or Bus
 
-        for vehicleType in framepkl.keys():
-
+            #May not be a detection for that class in every frame
             if frameNumber in framepkl[vehicleType].keys():
-                
-                for detection in framepkl[vehicleType][frameNumber]:
+
+                for detection in framepkl[vehicleType][frameNumber]: #Get the trackingID + detection
 
                     ID, boundingBox = detection
 
@@ -73,24 +77,29 @@ class VisualizeTracker():
                         X = int(X1 + 0.5 * (X2 - X1))
                         Y = int(Y1 + 0.5 * (Y2 - Y1))
 
-                        cv2.rectangle(img, (X1, Y1), (X2, Y2), (0, 0, 255), 2)
+                        cv2.rectangle(img, (X1, Y1), (X2, Y2), (0, 0, 255), 2) #write bounding box onto video
                         cv2.putText(img, vehicleType + ": " + str(ID), (X, Y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 0, 0))
 
         self.out_video.write(img)
 
+
+    ##
+    # Workflow for the visualizations. Writes per-image tracking results
+    # @returns framepkl, trackpkl
+    #
     def run_visualizations(self):
 
-        framepkl, trackpkl = self.load_files()
+        framepkl, trackpkl = self.load_files() #loads tracking files
 
-        images = os.listdir(os.path.join(self.default['data_dir'], self.cam_ident))
+        images = os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)) #gets the images
 
         for img in tqdm(sorted(images)):
 
             frameNum = int(img.replace(".jpg", ""))
-            img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, img))
-            self.write_video_frame(img, framepkl, trackpkl, frameNum)
+            img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, img)) #read the images
+            self.write_video_frame(img, framepkl, trackpkl, frameNum) #write the images
 
-        self.out_video.release()
+        self.out_video.release() #release the video
 
 if __name__=='__main__':
     

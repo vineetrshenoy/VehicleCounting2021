@@ -17,21 +17,23 @@ class Tracker():
 
     ##
     # Initializes the Tracker object
-    # 
+    # @param cam_ident Camera identifier, by video according to AICITY2020 challenge
     #
     def __init__(self, cam_ident):
         self.config = config['TRACKING']
         self.cam_ident = cam_ident
 
-        os.makedirs(os.path.join('src', 'vc_outputs', 'tracker_output', self.cam_ident), exist_ok=True)
-        self.out_dir = os.path.join('src', 'vc_outputs', 'tracker_output', self.cam_ident)
+        os.makedirs(os.path.join('src', 'vc_outputs', 'tracker_output', self.cam_ident), exist_ok=True) #Create tracker_output folder
+        self.out_dir = os.path.join('src', 'vc_outputs', 'tracker_output', self.cam_ident) #set output directory
         print()
 
 
     ##
-    # Performs manipulations on tracker output and prepares object for next 
-    # step in Pipelline
-    # 
+    # Draws the bounding boxes on the image frame and adds to video
+    # @param tracker_output Output of the sort.py code
+    # @param frameBox Dictionary indexed by frame number with tracking results
+    # @param trackBox Dictionary indexed by objectID with tracking results
+    # @param frameNumber The frame count to put in correct order
     #
     def process_tracker_output(self, tracker_output, frameBox, trackBox, frameCount):
         
@@ -40,11 +42,12 @@ class Tracker():
 
             X1, Y1, X2, Y2, ID = bbox
             ID = int(ID)
-            if ID not in trackBox:
+            if ID not in trackBox: #If new car, create a tracker entry
                 trackBox[ID] = []
-            if frameCount not in frameBox:
+            if frameCount not in frameBox: #If new frame, create new tracker entry
                 frameBox[frameCount] = []
 
+            #Add tracker results to dictionaryies
             frameBox[frameCount].append((ID, (X1, Y1, X2, Y2)))
             trackBox[ID].append((frameCount, (X1, Y1, X2, Y2)))
             
@@ -57,19 +60,19 @@ class Tracker():
     #
     def per_class_tracker(self, vehicle_dtcs):
         
-        objectTracker = Sort()
+        objectTracker = Sort() #Initialize sort object
         frameBox = {}
         trackBox = {}
 
-        for frameCount in tqdm(range(0, len(vehicle_dtcs))):
+        for frameCount in tqdm(range(0, len(vehicle_dtcs))): #For every frame
 
-            frame = vehicle_dtcs[frameCount]
+            frame = vehicle_dtcs[frameCount] #get detections for that frame
             THRESHOLD = float(self.config['THRESHOLD'])
-            NMS = list(filter(lambda detect: detect[4] > THRESHOLD, frame))
+            NMS = list(filter(lambda detect: detect[4] > THRESHOLD, frame)) #Get all detections that exceed THRESHOLD
             NMS = np.array(NMS)
             
-            tracker_output = objectTracker.update(NMS)
-            self.process_tracker_output(tracker_output, frameBox, trackBox, frameCount + 1)
+            tracker_output = objectTracker.update(NMS) #Update the tracker
+            self.process_tracker_output(tracker_output, frameBox, trackBox, frameCount + 1) #Get results in format for additional consumption
 
         objectTracker.reset()
         return frameBox, trackBox
@@ -79,7 +82,7 @@ class Tracker():
 
     ##
     # Workflow for the tracker object
-    # @returns 
+    # @param detections The Detections file from the previous step in pipeline 
     #
     def run_tracker(self, detections): 
 
@@ -90,7 +93,6 @@ class Tracker():
             frameBox, trackBox = self.per_class_tracker(vehicle_detections)
 
             # Save frameBox and trackBox as a pickle file and return 
-            #TODO: Fix Paths
             if len(trackBox.keys()) !=0:
                 trackName = "Track_" + className + "_" + self.cam_ident + '.pkl'
                 frameName = "Frame_" + className + "_" + self.cam_ident + '.pkl'
