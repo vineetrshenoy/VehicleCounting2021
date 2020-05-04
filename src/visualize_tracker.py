@@ -25,7 +25,7 @@ class VisualizeTracker():
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
         frame_dim = (self.default['frame_width'], self.default['frame_height'])
-        self.out_video = cv2.VideoWriter(video_name, self.fourcc, 10, (1920, 1080)) #TODO: CAN NOT HARDCODE
+        #self.out_video = cv2.VideoWriter(video_name, self.fourcc, 10, (1920, 1080)) #TODO: CAN NOT HARDCODE
         
         print()
 
@@ -80,8 +80,9 @@ class VisualizeTracker():
                         cv2.rectangle(img, (X1, Y1), (X2, Y2), (0, 0, 255), 2) #write bounding box onto video
                         cv2.putText(img, vehicleType + ": " + str(ID), (X, Y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 0, 0))
 
-        self.out_video.write(img)
-
+        
+        #self.out_video.write(img)
+        return img
 
     ##
     # Workflow for the visualizations. Writes per-image tracking results
@@ -93,15 +94,16 @@ class VisualizeTracker():
 
         images = os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)) #gets the images
 
-        for img in tqdm(sorted(images)):
+        for imgName in tqdm(sorted(images)):
 
-            frameNum = int(img.replace(".jpg", ""))
-            img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, img)) #read the images
-            self.write_video_frame(img, framepkl, trackpkl, frameNum) #write the images
+            frameNum = int(imgName.replace(".jpg", ""))
+            img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, imgName)) #read the images
+            img = self.write_video_frame(img, framepkl, trackpkl, frameNum) #write the images
+            cv2.imwrite(os.path.join(self.out_dir, imgName), img)
 
         self.out_video.release() #release the video
 
 if __name__=='__main__':
     
-    vt = VisualizeTracker('cam_10')
+    vt = VisualizeTracker('cam_1')
     vt.run_visualizations()

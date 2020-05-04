@@ -107,11 +107,12 @@ class Tracker():
 
 if __name__=='__main__':
 
-
-    with open('/vulcan/scratch/vshenoy/aicity2020/other_detection_files/cam_10.pkl', 'rb') as f:
+    filepath = '/vulcan/scratch/vshenoy/vehicle_counting/src/vc_outputs/detection_output/cam_1/cam_1.pkl'
+    filepath2 = 'cam_10.pkl'
+    with open(filepath, 'rb') as f:
         data = pickle.load(f)
 
-    tr = Tracker('cam_10')
+    tr = Tracker('cam_1')
     tr.run_tracker(data)
 
     
