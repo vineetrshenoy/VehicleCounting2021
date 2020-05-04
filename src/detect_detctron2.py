@@ -4,7 +4,8 @@ import pickle
 import numpy as np
 import cv2
 import configparser
-from torch import cuda
+import torch
+torch.cuda.current_device()
 import app_logger
 
 from detectron2.modeling import build_model
@@ -90,11 +91,14 @@ class DetectDetectron:
 
     def __init__(self, cam_ident):
         self.paths = paths
+        self.default = config['DEFAULT']
         self.config = config['DETECTION']
         predictor, cfg = self.load_model()
         self.predictor = predictor
         self.cfg = cfg
         self.cam_ident = cam_ident
+        self.out_dir = os.path.join('src', 'vc_outputs', 'detection_output', self.cam_ident)
+        os.makedirs(self.out_dir, exist_ok=True)
     ##
     # Loads a model for inference
     # @returns DefaultPredictor, cfg object
@@ -105,8 +109,7 @@ class DetectDetectron:
         cfg.merge_from_file(model_zoo.get_config_file(self.config['config_file']))
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7 # set threshold for this model
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(self.config['config_file'])
-        if cuda.is_available():
-            cfg.MODEL.DEVICE = 'cuda:0'
+        cfg.MODEL.DEVICE = 'cuda:0'
         predictor = DefaultPredictor(cfg)
 
         return predictor, cfg
@@ -126,7 +129,7 @@ class DetectDetectron:
     #   Creates object structure for subsequent tracking
     #   @param output 
     #
-    def process_outputs(self, raw_detections: dict, cam_identifier: str) -> list:
+    def process_outputs(self, raw_detections: dict) -> list:
 
         boxes = raw_detections['instances'].get_fields()['pred_boxes']	
         scores = raw_detections['instances'].get_fields()['scores']
@@ -162,7 +165,7 @@ class DetectDetectron:
             tup = (x1, y1, x2, y2, scores[i].item())
             
             cat = classes[i].item() #category
-            bbPath = self.paths[cam_identifier] #gets the ROI coordinates
+            bbPath = self.paths[self.cam_ident] #gets the ROI coordinates
 
             #if contains point, add to list of detections
             if bbPath.contains_point((centers[0].item(), centers[1].item())):
@@ -200,39 +203,35 @@ class DetectDetectron:
     #   Runs the detection workflow
     #   @param filepath Folder containing extracted images 
     #
-    def run_predictions(self, filepath: str):
-
-        if int(self.config['visualize']) == 1: #create a folder to store visualizations
-            camera_ident = filepath.split('/')[-1]
-            os.makedirs(os.path.join('vc_outputs', 'detection_output', camera_ident), exist_ok=True)
+    def run_predictions(self):
 
         detection_dict = {}
-        files = sorted(os.listdir(filepath))
+        files = sorted(os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)))
 
         for i in tqdm(range(0, len(files), int(self.config['step']))): #for every camera frame
 
-            img = cv2.imread(os.path.join(filepath, files[i])) #read the frame
+            img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, files[i])) #read the frame
 
             outputs = self.predictor(img) #generate detections on image
-            detections = self.process_outputs(outputs, filepath.split('/')[-1])
-            frame = self.get_frame_number(os.path.join(filepath, files[i]))
+            detections = self.process_outputs(outputs)
+            frame = self.get_frame_number(os.path.join(self.default['data_dir'], self.cam_ident, files[i]))
             
             if int(self.config['visualize']) == 1:
 
-                file_name = os.path.join('vc_outputs', 'detection_output', camera_ident, files[i])
+                file_name = os.path.join(self.out_dir, files[i])
                 self.visualize_detections(img, detections, file_name)
                 
             detection_dict[frame] = detections
         
         
-        with open(filepath.split('/')[-1] + '.pkl', 'wb') as handle:
+        with open(os.path.join(self.out_dir, self.cam_ident + '.pkl' ), 'wb') as handle:
             pickle.dump(detection_dict, handle)           
 
         return detection_dict
 
 if __name__ == '__main__':
 
-    filepath = sys.argv[1]
-    dt = DetectDetectron()
-    dt.run_predictions(filepath)
+    #filepath = sys.argv[1]
+    dt = DetectDetectron('cam_1')
+    dt.run_predictions()
     print('Hello World')
