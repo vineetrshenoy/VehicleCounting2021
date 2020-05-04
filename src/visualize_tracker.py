@@ -101,7 +101,7 @@ class VisualizeTracker():
             img = self.write_video_frame(img, framepkl, trackpkl, frameNum) #write the images
             cv2.imwrite(os.path.join(self.out_dir, imgName), img)
 
-        self.out_video.release() #release the video
+        #self.out_video.release() #release the video
 
 if __name__=='__main__':
     
