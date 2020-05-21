@@ -13,11 +13,11 @@ config.read('config/basic.ini')
 
 def main() -> None:
     
-    dt = DetectDetectron('cam_1')
+    dt = DetectDetectron('cam_8')
     detection_dict = dt.run_predictions()
-    tr = Tracker('cam_1')
+    tr = Tracker('cam_8')
     tr.run_tracker(detection_dict)
-    VisualizeTracker('cam_1').run_visualizations()
+    VisualizeTracker('cam_8').run_visualizations()
 
 
 if __name__ == '__main__':
