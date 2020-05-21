@@ -97,7 +97,7 @@ class DetectDetectron:
         self.predictor = predictor
         self.cfg = cfg
         self.cam_ident = cam_ident
-        self.out_dir = os.path.join('src', 'vc_outputs', 'detection_output', self.cam_ident)
+        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'detection_output', self.cam_ident)
         os.makedirs(self.out_dir, exist_ok=True)
     ##
     # Loads a model for inference
