@@ -20,7 +20,7 @@ class VisualizeTracker():
         self.default = config['DEFAULT']
         self.config = config['TRACKING']
         self.cam_ident = cam_ident
-        self.out_dir = os.path.join('src', 'vc_outputs', 'tracker_output', self.cam_ident)
+        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'tracker_output', self.cam_ident)
         
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
@@ -93,9 +93,9 @@ class VisualizeTracker():
         framepkl, trackpkl = self.load_files() #loads tracking files
 
         images = os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)) #gets the images
-
-        for imgName in tqdm(sorted(images)):
-
+        images = sorted(images)
+        for i in tqdm(range(0, len(images), int(self.config['step']))):
+            imgName = images[i]
             frameNum = int(imgName.replace(".jpg", ""))
             img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, imgName)) #read the images
             img = self.write_video_frame(img, framepkl, trackpkl, frameNum) #write the images
@@ -105,5 +105,4 @@ class VisualizeTracker():
 
 if __name__=='__main__':
     
-    vt = VisualizeTracker('cam_1')
-    vt.run_visualizations()
+    VisualizeTracker('cam_9').run_visualizations()

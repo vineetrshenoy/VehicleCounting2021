@@ -21,10 +21,12 @@ class Tracker():
     #
     def __init__(self, cam_ident):
         self.config = config['TRACKING']
+        self.default = config['DEFAULT']
         self.cam_ident = cam_ident
 
-        os.makedirs(os.path.join('src', 'vc_outputs', 'tracker_output', self.cam_ident), exist_ok=True) #Create tracker_output folder
-        self.out_dir = os.path.join('src', 'vc_outputs', 'tracker_output', self.cam_ident) #set output directory
+        
+        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'tracker_output', self.cam_ident) #set output directory
+        os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
         print()
 
 
@@ -72,7 +74,8 @@ class Tracker():
             NMS = np.array(NMS)
             
             tracker_output = objectTracker.update(NMS) #Update the tracker
-            self.process_tracker_output(tracker_output, frameBox, trackBox, frameCount + 1) #Get results in format for additional consumption
+            index = (frameCount + 1) * int(self.config['step']) - 1
+            self.process_tracker_output(tracker_output, frameBox, trackBox, index) #Get results in format for additional consumption
 
         objectTracker.reset()
         return frameBox, trackBox
@@ -107,12 +110,12 @@ class Tracker():
 
 if __name__=='__main__':
 
-    filepath = '/vulcan/scratch/vshenoy/vehicle_counting/src/vc_outputs/detection_output/cam_1/cam_1.pkl'
-    filepath2 = 'cam_10.pkl'
+    filepath = 'src/vc_outputs/aicity/detection_output/cam_9/cam_9.pkl'
+    #filepath2 = 'cam_10.pkl'
     with open(filepath, 'rb') as f:
         data = pickle.load(f)
 
-    tr = Tracker('cam_1')
+    tr = Tracker('cam_9')
     tr.run_tracker(data)
 
     
