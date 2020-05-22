@@ -13,6 +13,7 @@ from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 from detectron2.structures.boxes import BoxMode
+from detectron2.layers import nms
 
 from tqdm import tqdm
 import matplotlib.path as mplPath
@@ -158,7 +159,7 @@ class DetectDetectron:
                 
         for i in range(0, N): #for each box
 
-            box = BoxMode.convert(boxes[i].tensor, BoxMode.XYXY_ABS, BoxMode.XYWH_ABS)[0]
+            #box = BoxMode.convert(boxes[i].tensor, BoxMode.XYXY_ABS, BoxMode.XYWH_ABS)[0]
             centers = boxes[i].get_centers()[0]
                         
             box = boxes[i].tensor[0]
@@ -174,17 +175,41 @@ class DetectDetectron:
 
             #if contains point, add to list of detections
             if bbPath.contains_point((centers[0].item(), centers[1].item())):
+                
+                if scores[i].item() > float(self.config['score_thresh']):
 
-                if cat == 2:
-                    car_detections.append(tup)
-                elif cat == 5:
-                    bus_detections.append(tup)
-                else:
-                    truck_detections.append(tup)
+                    if cat == 2:
+                        car_detections.append(tup)
+                    elif cat == 5:
+                        bus_detections.append(tup)
+                    else:
+                        truck_detections.append(tup)
 
+        car_detections = self.perform_nms(car_detections)
+        bus_detections = self.perform_nms(bus_detections)
+        truck_detections = self.perform_nms(truck_detections)
         detections = [car_detections, bus_detections, truck_detections]
         return detections
 
+    ##
+    #   The detections for a certain class
+    #   @param detections
+    #   @returns 
+    #
+    def perform_nms(self, detections):
+
+        N = len(detections)
+        scores = np.array([box[4] for box in detections])
+        boxes = np.zeros((N, 4))
+        for i in range(0, N):
+            boxes[i, 0] = detections[i][0]
+            boxes[i, 1] = detections[i][1]
+            boxes[i, 2] = detections[i][2]
+            boxes[i, 3] = detections[i][3]
+        
+        indices = nms(torch.from_numpy(boxes), torch.from_numpy(scores), float(self.config['iou']))
+        indices = indices.numpy().tolist()
+        return [detections[i] for i in indices]
     ##
     #   Runs the detection workflow
     #   @param img Input image
