@@ -89,7 +89,7 @@ paths = {
 #
 class DetectDetectron:
 
-    def __init__(self, cam_ident):
+    def __init__(self, cam_ident, fps, size_tup):
         self.paths = paths
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
@@ -98,6 +98,11 @@ class DetectDetectron:
         self.cfg = cfg
         self.cam_ident = cam_ident
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'detection_output', self.cam_ident)
+        
+        self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
+        video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
+        #frame_dim = (self.default['frame_width'], self.default['frame_height'])
+        self.out_video = cv2.VideoWriter(video_name, self.fourcc, fps, size_tup) #TODO: CAN NOT HARDCODE
         os.makedirs(self.out_dir, exist_ok=True)
     ##
     # Loads a model for inference
@@ -196,7 +201,8 @@ class DetectDetectron:
                 bottom_right = (int(bbox[2]), int(bbox[3]))
                 cv2.rectangle(img, top_left, bottom_right, (0, 0, 255), 2)
                 cv2.imwrite(file_name, img)
-        
+
+        self.out_video.write(img)
         return img
 
     ##
@@ -223,7 +229,9 @@ class DetectDetectron:
                 
             detection_dict[frame] = detections
         
-        
+        if (int(self.config['visualize'])) == 1:
+            self.out_video.release() #release the video
+
         with open(os.path.join(self.out_dir, self.cam_ident + '.pkl' ), 'wb') as handle:
             pickle.dump(detection_dict, handle)           
 
@@ -232,6 +240,6 @@ class DetectDetectron:
 if __name__ == '__main__':
 
     #filepath = sys.argv[1]
-    dt = DetectDetectron('cam_1')
+    dt = DetectDetectron('cam_9', 10, (1920, 1080))
     dt.run_predictions()
     print('Hello World')

@@ -16,7 +16,7 @@ config.read('config/basic.ini')
 #
 class VisualizeTracker():
 
-    def __init__(self, cam_ident):
+    def __init__(self, cam_ident, fps, size_tup):
         self.default = config['DEFAULT']
         self.config = config['TRACKING']
         self.cam_ident = cam_ident
@@ -25,7 +25,7 @@ class VisualizeTracker():
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
         frame_dim = (self.default['frame_width'], self.default['frame_height'])
-        #self.out_video = cv2.VideoWriter(video_name, self.fourcc, 10, (1920, 1080)) #TODO: CAN NOT HARDCODE
+        self.out_video = cv2.VideoWriter(video_name, self.fourcc, fps, size_tup) #TODO: CAN NOT HARDCODE
         
         print()
 
@@ -81,7 +81,7 @@ class VisualizeTracker():
                         cv2.putText(img, vehicleType + ": " + str(ID), (X, Y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 0, 0))
 
         
-        #self.out_video.write(img)
+        self.out_video.write(img)
         return img
 
     ##
@@ -101,8 +101,8 @@ class VisualizeTracker():
             img = self.write_video_frame(img, framepkl, trackpkl, frameNum) #write the images
             cv2.imwrite(os.path.join(self.out_dir, imgName), img)
 
-        #self.out_video.release() #release the video
+        self.out_video.release() #release the video
 
 if __name__=='__main__':
     
-    VisualizeTracker('cam_9').run_visualizations()
+    VisualizeTracker('cam_9', 10, (1920, 1080)).run_visualizations()
