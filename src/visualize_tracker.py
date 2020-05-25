@@ -1,3 +1,4 @@
+import sys
 import os
 import app_logger
 import configparser
@@ -8,7 +9,7 @@ from tqdm import tqdm
 logger = app_logger.get_logger('tracker_visualization')
 
 config = configparser.ConfigParser()
-config.read('config/basic.ini')
+config.read(sys.argv[1])
 
 ##
 # Workflow for the tracker object
