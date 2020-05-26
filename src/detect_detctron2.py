@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import configparser
 import torch
+import time
 torch.cuda.current_device()
 import app_logger
 
@@ -21,7 +22,7 @@ import matplotlib.path as mplPath
 logger = app_logger.get_logger('detect_detectron')
 
 config = configparser.ConfigParser()
-config.read('config/basic.ini')
+config.read(sys.argv[1])
 
 
 
@@ -174,6 +175,7 @@ class DetectDetectron:
             bbPath = self.paths[self.cam_ident] #gets the ROI coordinates
 
             #if contains point, add to list of detections
+            #if True:
             if bbPath.contains_point((centers[0].item(), centers[1].item())):
                 
                 if scores[i].item() > float(self.config['score_thresh']):
@@ -238,12 +240,19 @@ class DetectDetectron:
 
         detection_dict = {}
         files = sorted(os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)))
-
+        
+        frame_times = np.zeros((1, len(files)))
+        start_process_time = time.process_time()
         for i in tqdm(range(0, len(files), int(self.config['step']))): #for every camera frame
 
             img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, files[i])) #read the frame
 
+            start_frame_time = time.process_time()
             outputs = self.predictor(img) #generate detections on image
+            end_frame_time = time.process_time()
+
+            frame_times[0, i] = end_frame_time - start_frame_time
+
             detections = self.process_outputs(outputs)
             frame = self.get_frame_number(os.path.join(self.default['data_dir'], self.cam_ident, files[i]))
             
@@ -253,6 +262,17 @@ class DetectDetectron:
                 self.visualize_detections(img, detections, file_name)
                 
             detection_dict[frame] = detections
+        
+        end_process_time = time.process_time()
+
+        logger.info(self.default['job_name'] + ' || ' + self.cam_ident + ' -----------------')
+        logger.info('Mean: ' + str(np.mean(frame_times)))
+        logger.info('Median: ' + str(np.median(frame_times)))
+        logger.info('std: ' + str(np.std(frame_times)))
+        logger.info('max: ' + str(np.max(frame_times)))
+        logger.info('min: ' + str(np.min(frame_times)))
+        logger.info('Total: ' + str(end_process_time - start_process_time))
+
         
         if (int(self.config['visualize'])) == 1:
             self.out_video.release() #release the video
@@ -264,7 +284,8 @@ class DetectDetectron:
 
 if __name__ == '__main__':
 
-    #filepath = sys.argv[1]
-    dt = DetectDetectron('cam_9', 10, (1920, 1080))
+    filepath = sys.argv[1]
+    dt = DetectDetectron(sys.argv[2], 10, (320,240))
     dt.run_predictions()
+    #logger.info()
     print('Hello World')

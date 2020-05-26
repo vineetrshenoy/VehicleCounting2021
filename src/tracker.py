@@ -2,6 +2,7 @@ import os
 from sort import Sort
 import numpy as np
 import cv2
+import sys
 from tqdm import tqdm
 import pickle
 import app_logger
@@ -10,7 +11,7 @@ import configparser
 logger = app_logger.get_logger('tracker')
 
 config = configparser.ConfigParser()
-config.read('config/basic.ini')
+config.read(sys.argv[1])
 
 
 class Tracker():
