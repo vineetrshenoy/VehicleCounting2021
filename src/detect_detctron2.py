@@ -17,6 +17,7 @@ from detectron2.structures.boxes import BoxMode
 from detectron2.layers import nms
 
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
 
 logger = app_logger.get_logger('detect_detectron')
@@ -172,11 +173,11 @@ class DetectDetectron:
             tup = (x1, y1, x2, y2, scores[i].item())
             
             cat = classes[i].item() #category
-            bbPath = self.paths[self.cam_ident] #gets the ROI coordinates
+            #bbPath = self.paths[self.cam_ident] #gets the ROI coordinates
 
             #if contains point, add to list of detections
-            #if True:
-            if bbPath.contains_point((centers[0].item(), centers[1].item())):
+            if True:
+            #if bbPath.contains_point((centers[0].item(), centers[1].item())):
                 
                 if scores[i].item() > float(self.config['score_thresh']):
 
@@ -229,7 +230,7 @@ class DetectDetectron:
                 cv2.rectangle(img, top_left, bottom_right, (0, 0, 255), 2)
                 cv2.imwrite(file_name, img)
 
-        self.out_video.write(img)
+        #self.out_video.write(img)
         return img
 
     ##
@@ -241,7 +242,7 @@ class DetectDetectron:
         detection_dict = {}
         files = sorted(os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)))
         
-        frame_times = np.zeros((1, len(files)))
+        frame_times = np.zeros((len(files),))
         start_process_time = time.process_time()
         for i in tqdm(range(0, len(files), int(self.config['step']))): #for every camera frame
 
@@ -251,16 +252,16 @@ class DetectDetectron:
             outputs = self.predictor(img) #generate detections on image
             end_frame_time = time.process_time()
 
-            frame_times[0, i] = end_frame_time - start_frame_time
+            frame_times[i] = end_frame_time - start_frame_time
 
             detections = self.process_outputs(outputs)
             frame = self.get_frame_number(os.path.join(self.default['data_dir'], self.cam_ident, files[i]))
-            
+            '''
             if int(self.config['visualize']) == 1:
 
                 file_name = os.path.join(self.out_dir, files[i])
                 self.visualize_detections(img, detections, file_name)
-                
+            '''    
             detection_dict[frame] = detections
         
         end_process_time = time.process_time()
@@ -273,6 +274,7 @@ class DetectDetectron:
         logger.info('min: ' + str(np.min(frame_times)))
         logger.info('Total: ' + str(end_process_time - start_process_time))
 
+        np.save(self.default['job_name'] +'_' + self.cam_ident + '.npy', frame_times) 
         
         if (int(self.config['visualize'])) == 1:
             self.out_video.release() #release the video
