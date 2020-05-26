@@ -256,12 +256,12 @@ class DetectDetectron:
 
             detections = self.process_outputs(outputs)
             frame = self.get_frame_number(os.path.join(self.default['data_dir'], self.cam_ident, files[i]))
-            
+            '''
             if int(self.config['visualize']) == 1:
 
                 file_name = os.path.join(self.out_dir, files[i])
                 self.visualize_detections(img, detections, file_name)
-                
+            '''    
             detection_dict[frame] = detections
         
         end_process_time = time.process_time()
