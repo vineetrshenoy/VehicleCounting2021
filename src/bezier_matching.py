@@ -24,7 +24,33 @@ class BezierMatching:
         #os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
         print()
 
-   
+    
+    ##
+    # Get point on curve such that tracker point to curve and curve itself are orthogonal
+    # @param t parameter for points on curve
+    # @param mvt Movement ID
+    # @param coor tracker points
+    # @returns curve_points Points on curve orthogonal to tracker points
+    #
+    def get_linear_curve_points(self, t, mvt, coor):
+
+        N  = len(t)
+        points = self.bezier_curves[mvt]
+        p1 = points[:, 0].reshape(1,2)
+        p2 = points[:, 1].reshape(1,2)
+
+        #All points for all values of t
+        endpoint_diff = np.tile((p2 - p1), (N, 1)) #repeat (p2 -p1) for vectorized calc
+        curve_points = np.tile(p1, (N, 1)) + t.reshape(5,1) * endpoint_diff #points on curve
+        point_curve_diff = curve_points - coor.T #diff between tracker point and point on curve
+       
+        dot_product = np.sum(point_curve_diff*endpoint_diff, axis=1)       
+        
+        assert np.sum(dot_product) < 1e-5 #assert dot product property is satisfied
+        
+        return curve_points
+
+
     ##
     # Determines parametric 't' for linear movements
     # @param coor Coordinate matrix, coor[0, i] is x-coor, coor[1, i] is y-coor
@@ -61,10 +87,10 @@ class BezierMatching:
 
             if np.shape(self.bezier_curves[mvt])[1] == 2: #linear movement
                 t = self.get_linear_t(coor, mvt) 
+                curve_points = self.get_linear_curve_points(t, mvt, coor)
             
             else:
                 print()
-
 
     ##
     # Begins the bezier matching process.
