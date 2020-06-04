@@ -3,6 +3,8 @@ import sys
 import pickle
 import numpy as np
 import configparser
+from tqdm import tqdm
+
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
@@ -20,13 +22,13 @@ class BezierMatching:
 
     def __init__(self, cam_ident, bezier_curves=bezier_curves):
         self.config = config['BEZIER']
-        #self.default = config['DEFAULT']
+        self.default = config['DEFAULT']
         self.cam_ident = cam_ident
         self.bezier_curves = bezier_curves
-
         
-        #self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'tracker_output', self.cam_ident) #set output directory
-        #os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
+        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output') #set output directory
+        os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
+        self.track1txt = open(os.path.join(self.out_dir, self.default['counting_file']), 'w')
 
 
     
@@ -182,7 +184,7 @@ class BezierMatching:
 
             if np.shape(self.bezier_curves[mvt])[1] == 2: #linear movement
                 t = self.get_linear_t(coor, mvt) 
-                if np.sum(np.diff(t) < 0) / len(t) > float(self.config['BEZIER']): #t is decreasing -- wrong direction
+                if np.sum(np.diff(t) < 0) / len(t) > float(self.config['THRESHOLD']): #t is decreasing -- wrong direction
                     mvt_scores[mvt - 1] = np.iinfo(np.int32).max
                 else:
                     score = self.get_linear_score(t, mvt, coor)
@@ -190,7 +192,7 @@ class BezierMatching:
             
             else: #quadratic movement
                 t = self.get_quadratic_t(coor, mvt)
-                if np.sum(np.diff(t) < 0) / len(t) > float(self.config['BEZIER']): #t is decreasing -- wrong direction
+                if np.sum(np.diff(t) < 0) / len(t) > float(self.config['THRESHOLD']): #t is decreasing -- wrong direction
                     mvt_scores[mvt - 1] = np.iinfo(np.int32).max
                 else:
                     score = self.get_quadratic_score(t, mvt, coor)
@@ -203,9 +205,9 @@ class BezierMatching:
     # @param data The pickle file stored from tracker.py 
     # @returns DefaultPredictor, cfg object
     #
-    def proces_tracking_results(self, data):
+    def process_tracking_results(self, data):
 
-        for trackerID in data.keys(): #for each tracked vehicle
+        for trackerID in tqdm(data.keys()): #for each tracked vehicle
 
             tracked_vehicle = data[trackerID]
             N = len(tracked_vehicle) #N boxes of tracked coordinates
@@ -220,7 +222,14 @@ class BezierMatching:
                 coor[1,i] = box[1] + (box[3] - box[1]) / 2
 
                   
-            self.project_on_movements(coor) 
+            mvt_id = self.project_on_movements(coor)
+            frame_id = tracked_vehicle[N - 1][0]
+            cat_id = 1
+            video_id = 1
+
+            self.track1txt.write('{} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id))
+
+        self.track1txt.close()
 
 
 
@@ -231,4 +240,4 @@ if __name__ == '__main__':
 
         data = pickle.load(f)
 
-    BezierMatching('cam_1').proces_tracking_results(data)
+    BezierMatching('cam_1').process_tracking_results(data)
