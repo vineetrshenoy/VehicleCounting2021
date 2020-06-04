@@ -110,6 +110,7 @@ class BezierMatching:
 
         return t
 
+    
     ##
     # Determines parametric 't' for quadratic movements
     # @param coor Coordinate matrix, coor[0, i] is x-coor, coor[1, i] is y-coor
@@ -137,11 +138,32 @@ class BezierMatching:
 
         t = np.zeros(coor_len)
 
+
+        def get_shortest_distance_root_index(roots, indices, i):
+            
+            points = self.bezier_curves[mvt]
+        
+            #control points pt1, pt2, pt3
+            pt1 = points[:, 0].reshape(1,2) 
+            pt2 = points[:, 1].reshape(1,2) 
+            pt3 = points[:, 2].reshape(1,2)
+            N = len(indices)
+            
+            t_val = roots[indices]
+            pts = np.kron(np.square(1 - t_val), pt1) + np.kron(2 * (1 - t_val) * t_val, pt2) + np.kron(np.square(t_val), pt3)
+            pts = pts.reshape((N,2)) #rows of [x, y] coordinates
+            distance = np.square(pts - np.tile(coor[:, i].T, (N, 1)))
+            distance = np.sum(distance, axis=1)
+            
+            return t_val[np.argmin(distance)]
+
+            
         for i in range(0, coor_len): #need loop because np.roots can not be vectorized
             roots = np.roots([fourth, third, second[i], first[i]]) #only 'second' and 'first' depend on different xn,yn coordinates
-            index = np.where(np.logical_and(roots>=0, roots<=1))[0][0]
-            t[i] = roots[index]
+            indices = np.where(np.logical_and(roots>=0, roots<=1))[0]
+            t[i] = get_shortest_distance_root_index(roots, indices, i)
 
+        
         return t
 
 
