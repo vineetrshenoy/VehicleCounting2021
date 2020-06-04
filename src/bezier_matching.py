@@ -2,11 +2,16 @@ import os
 import sys
 import pickle
 import numpy as np
+import configparser
+config = configparser.ConfigParser()
+config.read(sys.argv[1])
 
 bezier_curves = {
-    1: np.array([[2, 1060], [400, 190]]),
-    2: np.array([[990, 2], [150, 320]]),
-    3: np.array([[2, 600, 1275], [500, 450, 545]])
+    
+    1: np.array([[990, 2], [150, 320]]),
+    2: np.array([[2, 1060], [400, 190]]),
+    3: np.array([[1275, -50, 1060], [460, 400, 190]]),
+    4: np.array([[2, 600, 1275], [500, 450, 545]])
 }
 
 
@@ -14,7 +19,7 @@ bezier_curves = {
 class BezierMatching:
 
     def __init__(self, cam_ident, bezier_curves=bezier_curves):
-        #self.config = config['TRACKING']
+        self.config = config['BEZIER']
         #self.default = config['DEFAULT']
         self.cam_ident = cam_ident
         self.bezier_curves = bezier_curves
@@ -22,7 +27,7 @@ class BezierMatching:
         
         #self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'tracker_output', self.cam_ident) #set output directory
         #os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
-        print()
+
 
     
     ##
@@ -43,7 +48,7 @@ class BezierMatching:
 
         #All points for all values of t
         endpoint_diff = np.tile((p2 - p1), (N, 1)) #repeat (p2 -p1) for vectorized calc
-        curve_points = np.tile(p1, (N, 1)) + t.reshape(5,1) * endpoint_diff #points on curve
+        curve_points = np.tile(p1, (N, 1)) + t.reshape(N,1) * endpoint_diff #points on curve
         point_curve_diff = curve_points - coor.T #diff between tracker point and point on curve
        
         dot_product = np.sum(point_curve_diff*endpoint_diff, axis=1)       
@@ -108,6 +113,7 @@ class BezierMatching:
 
         return t
 
+    
     ##
     # Determines parametric 't' for quadratic movements
     # @param coor Coordinate matrix, coor[0, i] is x-coor, coor[1, i] is y-coor
@@ -135,11 +141,32 @@ class BezierMatching:
 
         t = np.zeros(coor_len)
 
+
+        def get_shortest_distance_root_index(roots, indices, i):
+            
+            points = self.bezier_curves[mvt]
+        
+            #control points pt1, pt2, pt3
+            pt1 = points[:, 0].reshape(1,2) 
+            pt2 = points[:, 1].reshape(1,2) 
+            pt3 = points[:, 2].reshape(1,2)
+            N = len(indices)
+            
+            t_val = roots[indices]
+            pts = np.kron(np.square(1 - t_val), pt1) + np.kron(2 * (1 - t_val) * t_val, pt2) + np.kron(np.square(t_val), pt3)
+            pts = pts.reshape((N,2)) #rows of [x, y] coordinates
+            distance = np.square(pts - np.tile(coor[:, i].T, (N, 1)))
+            distance = np.sum(distance, axis=1)
+            
+            return t_val[np.argmin(distance)]
+
+            
         for i in range(0, coor_len): #need loop because np.roots can not be vectorized
             roots = np.roots([fourth, third, second[i], first[i]]) #only 'second' and 'first' depend on different xn,yn coordinates
-            index = np.where(np.logical_and(roots>=0, roots<=1))[0][0]
-            t[i] = roots[index]
+            indices = np.where(np.logical_and(roots>=0, roots<=1))[0]
+            t[i] = get_shortest_distance_root_index(roots, indices, i)
 
+        
         return t
 
 
@@ -155,7 +182,7 @@ class BezierMatching:
 
             if np.shape(self.bezier_curves[mvt])[1] == 2: #linear movement
                 t = self.get_linear_t(coor, mvt) 
-                if np.sum(np.diff(t)) < 0: #t is decreasing -- wrong direction
+                if np.sum(np.diff(t) < 0) / len(t) > float(self.config['BEZIER']): #t is decreasing -- wrong direction
                     mvt_scores[mvt - 1] = np.iinfo(np.int32).max
                 else:
                     score = self.get_linear_score(t, mvt, coor)
@@ -163,7 +190,7 @@ class BezierMatching:
             
             else: #quadratic movement
                 t = self.get_quadratic_t(coor, mvt)
-                if np.sum(np.diff(t)) < 0: #t is decreasing -- wrong direction
+                if np.sum(np.diff(t) < 0) / len(t) > float(self.config['BEZIER']): #t is decreasing -- wrong direction
                     mvt_scores[mvt - 1] = np.iinfo(np.int32).max
                 else:
                     score = self.get_quadratic_score(t, mvt, coor)
@@ -199,9 +226,8 @@ class BezierMatching:
 
 
 if __name__ == '__main__':
-    print('hello world')
-
-    with open(sys.argv[1], 'rb') as f:
+    
+    with open(sys.argv[2], 'rb') as f:
 
         data = pickle.load(f)
 
