@@ -2,6 +2,9 @@ import os
 import sys
 import pickle
 import numpy as np
+import configparser
+config = configparser.ConfigParser()
+config.read(sys.argv[1])
 
 bezier_curves = {
     
@@ -16,7 +19,7 @@ bezier_curves = {
 class BezierMatching:
 
     def __init__(self, cam_ident, bezier_curves=bezier_curves):
-        #self.config = config['TRACKING']
+        self.config = config['BEZIER']
         #self.default = config['DEFAULT']
         self.cam_ident = cam_ident
         self.bezier_curves = bezier_curves
@@ -24,7 +27,7 @@ class BezierMatching:
         
         #self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'tracker_output', self.cam_ident) #set output directory
         #os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
-        print()
+
 
     
     ##
@@ -179,7 +182,7 @@ class BezierMatching:
 
             if np.shape(self.bezier_curves[mvt])[1] == 2: #linear movement
                 t = self.get_linear_t(coor, mvt) 
-                if np.sum(np.diff(t)) < 0: #t is decreasing -- wrong direction
+                if np.sum(np.diff(t) < 0) / len(t) > float(self.config['BEZIER']): #t is decreasing -- wrong direction
                     mvt_scores[mvt - 1] = np.iinfo(np.int32).max
                 else:
                     score = self.get_linear_score(t, mvt, coor)
@@ -187,7 +190,7 @@ class BezierMatching:
             
             else: #quadratic movement
                 t = self.get_quadratic_t(coor, mvt)
-                if np.sum(np.diff(t)) < 0: #t is decreasing -- wrong direction
+                if np.sum(np.diff(t) < 0) / len(t) > float(self.config['BEZIER']): #t is decreasing -- wrong direction
                     mvt_scores[mvt - 1] = np.iinfo(np.int32).max
                 else:
                     score = self.get_quadratic_score(t, mvt, coor)
@@ -224,7 +227,7 @@ class BezierMatching:
 
 if __name__ == '__main__':
     
-    with open(sys.argv[1], 'rb') as f:
+    with open(sys.argv[2], 'rb') as f:
 
         data = pickle.load(f)
 
