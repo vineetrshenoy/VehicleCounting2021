@@ -4,9 +4,11 @@ import pickle
 import numpy as np
 
 bezier_curves = {
-    1: np.array([[2, 1060], [400, 190]]),
-    2: np.array([[990, 2], [150, 320]]),
-    3: np.array([[2, 600, 1275], [500, 450, 545]])
+    
+    1: np.array([[990, 2], [150, 320]]),
+    2: np.array([[2, 1060], [400, 190]]),
+    3: np.array([[1275, -50, 1060], [460, 400, 190]]),
+    4: np.array([[2, 600, 1275], [500, 450, 545]])
 }
 
 
@@ -43,7 +45,7 @@ class BezierMatching:
 
         #All points for all values of t
         endpoint_diff = np.tile((p2 - p1), (N, 1)) #repeat (p2 -p1) for vectorized calc
-        curve_points = np.tile(p1, (N, 1)) + t.reshape(5,1) * endpoint_diff #points on curve
+        curve_points = np.tile(p1, (N, 1)) + t.reshape(N,1) * endpoint_diff #points on curve
         point_curve_diff = curve_points - coor.T #diff between tracker point and point on curve
        
         dot_product = np.sum(point_curve_diff*endpoint_diff, axis=1)       
@@ -199,8 +201,7 @@ class BezierMatching:
 
 
 if __name__ == '__main__':
-    print('hello world')
-
+    
     with open(sys.argv[1], 'rb') as f:
 
         data = pickle.load(f)
