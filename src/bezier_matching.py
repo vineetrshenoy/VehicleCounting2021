@@ -3,6 +3,7 @@ import sys
 import pickle
 import numpy as np
 import configparser
+import glob
 from tqdm import tqdm
 
 config = configparser.ConfigParser()
@@ -205,7 +206,7 @@ class BezierMatching:
     # @param data The pickle file stored from tracker.py 
     # @returns DefaultPredictor, cfg object
     #
-    def process_tracking_results(self, data):
+    def process_tracking_results(self, data, cat_id):
 
         for trackerID in tqdm(data.keys()): #for each tracked vehicle
 
@@ -224,20 +225,43 @@ class BezierMatching:
                   
             mvt_id = self.project_on_movements(coor)
             frame_id = tracked_vehicle[N - 1][0]
-            cat_id = 1
             video_id = 1
 
             self.track1txt.write('{} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id))
 
+        
+
+    ##
+    # Begins the bezier matching process.
+    # @param data The pickle file stored from tracker.py 
+    # @returns DefaultPredictor, cfg object
+    #
+    def workflow(self):
+        
+        tracker_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'tracker_output', self.cam_ident)
+        category_dict = {'Car': 1, 'Truck': 2, 'Bus': 2}
+
+
+        files = glob.glob(os.path.join(tracker_dir, 'Track*'))
+
+        for tracker_file in files:
+
+            with open(tracker_file, 'rb') as f:              
+                
+                tracker_results = pickle.load(f)
+
+                filename = os.path.basename(tracker_file)
+                cat = filename.split('_')[1]
+                cat_id = category_dict[cat]
+                self.process_tracking_results(tracker_results, cat_id)
+
         self.track1txt.close()
 
 
+    
 
 
 if __name__ == '__main__':
     
-    with open(sys.argv[2], 'rb') as f:
-
-        data = pickle.load(f)
-
-    BezierMatching('cam_1').process_tracking_results(data)
+   
+    BezierMatching('cam_1').workflow()
