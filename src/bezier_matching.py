@@ -29,7 +29,7 @@ class BezierMatching:
         
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output') #set output directory
         os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
-        self.track1txt = open(os.path.join(self.out_dir, self.default['counting_file']), 'w')
+        self.track1txt = open(os.path.join(self.out_dir, self.default['job_name'] + '.txt'), 'w')
 
 
     
@@ -224,7 +224,7 @@ class BezierMatching:
 
                   
             mvt_id = self.project_on_movements(coor)
-            frame_id = tracked_vehicle[N - 1][0]
+            frame_id = tracked_vehicle[N - 1][0] + 1 #tracker is zero-indexed
             video_id = 1
 
             self.track1txt.write('{} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id))
