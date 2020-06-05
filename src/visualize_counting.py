@@ -3,6 +3,7 @@ import sys
 import cv2
 import numpy as np
 import configparser
+from tqdm import tqdm
 
 
 config = configparser.ConfigParser()
@@ -19,14 +20,8 @@ class VisualizeCounting():
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.default['job_name'] + '.avi') 
         frame_dim = (self.default['frame_width'], self.default['frame_height'])
-        #self.out_video = cv2.VideoWriter(video_name, self.fourcc, fps, size_tup) #TODO: CAN NOT HARDCODE
+        self.out_video = cv2.VideoWriter(video_name, self.fourcc, fps, size_tup) 
         
-        
-    def read_images(self):
-        files = sorted(os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)))
-
-
-
     ##
     # Reads and sorts the counting file results
     # 
@@ -67,7 +62,16 @@ class VisualizeCounting():
 
         return img
 
-
+    ##
+    #   Processes a filename
+    #   @param filename filepath for the image
+    #   @returns frame Frame number for certain file
+    #
+    def get_frame_number(self, filename: str) -> int:
+	
+        split_string = filename.split('/')
+        frame = split_string[-1].split('.')[0]
+        return int(frame)
 
     ##
     # Reads and sorts the counting file results
@@ -81,21 +85,26 @@ class VisualizeCounting():
         N = len(images)
 
         i = 0
-        while i < N:
+        #while i < N:
+        for i in tqdm(range(0, N)):
 
-            imgNum = results[:, 1][i]
-
-            imageName = os.path.join(self.default['data_dir'], self.cam_ident, images[imgNum -1])
+            imageName = os.path.join(self.default['data_dir'], self.cam_ident, images[i]) # image i+1.jpg
             img = cv2.imread(imageName)
+            imgNum = i + 1
+
+            if np.sum(np.array(results[:, 1] == imgNum)) > 0:
+                
+                indices = np.array(results[:, 1] == imgNum)
+                indices = np.where(indices)[0]
+
+                img = self.write_on_frame(img, results[indices, :])
+
+                #i = i + len(indices)
+                outfile = os.path.join(self.out_dir, os.path.basename(imageName))
+                cv2.imwrite(outfile, img)
             
-            indices = np.array(results[:, 1] == imgNum)
-            indices = np.where(indices)[0]
-
-            img = self.write_on_frame(img, results[indices, :])
-
-            i = i + len(indices)
-            outfile = os.path.join(self.out_dir, os.path.basename(imageName))
-            cv2.imwrite(outfile, img)
+            
+            self.out_video.write(img)
 
         
 
