@@ -111,12 +111,12 @@ class Tracker():
 
 if __name__=='__main__':
 
-    filepath = 'src/vc_outputs/aicity/detection_output/cam_9/cam_9.pkl'
+    filepath = 'src/vc_outputs/aicity/detection_output/cam_1/cam_1.pkl'
     #filepath2 = 'cam_10.pkl'
     with open(filepath, 'rb') as f:
         data = pickle.load(f)
 
-    tr = Tracker('cam_9')
+    tr = Tracker('cam_1')
     tr.run_tracker(data)
 
     
