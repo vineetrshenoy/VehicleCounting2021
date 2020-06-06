@@ -173,11 +173,11 @@ class DetectDetectron:
             tup = (x1, y1, x2, y2, scores[i].item())
             
             cat = classes[i].item() #category
-            #bbPath = self.paths[self.cam_ident] #gets the ROI coordinates
+            bbPath = self.paths[self.cam_ident] #gets the ROI coordinates
 
             #if contains point, add to list of detections
-            if True:
-            #if bbPath.contains_point((centers[0].item(), centers[1].item())):
+            #if True:
+            if bbPath.contains_point((centers[0].item(), centers[1].item())):
                 
                 if scores[i].item() > float(self.config['score_thresh']):
 

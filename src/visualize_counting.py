@@ -79,18 +79,21 @@ class VisualizeCounting():
     # @returns DefaultPredictor, cfg object
     #
     def workflow(self):
-
+        
+        poly = np.array([[1, 150], [844, 96], [1277, 277], [1277, 750], [2, 683]])
         results = self.read_counting_file()
         images = sorted(os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)))
         N = len(images)
 
-        i = 0
-        #while i < N:
+        
+        imgLoc = 'src/vc_outputs/aicity/tracker_output'
         for i in tqdm(range(0, N)):
 
-            imageName = os.path.join(self.default['data_dir'], self.cam_ident, images[i]) # image i+1.jpg
+            imageName = os.path.join(imgLoc, self.cam_ident, images[i]) # image i+1.jpg
             img = cv2.imread(imageName)
             imgNum = i + 1
+            cv2.polylines(img, np.int32([poly]), 1, (0, 255, 0), 1, cv2.LINE_AA)
+
 
             if np.sum(np.array(results[:, 1] == imgNum)) > 0:
                 

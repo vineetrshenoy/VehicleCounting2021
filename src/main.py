@@ -15,14 +15,15 @@ config.read(sys.argv[1])
 
 def main() -> None:
     
-    dt = DetectDetectron(sys.argv[2], 10, (1920, 1080))
+    dt = DetectDetectron('cam_1', 10, (1920, 1080))
     detection_dict = dt.run_predictions()
 
     if int(config['DETECTION']['visualize']) == 1:
-        VisualizeDetector(sys.argv[2], 10, (1920, 1080)).run_visualizations()
-    #tr = Tracker('cam_9')
-    #tr.run_tracker(detection_dict)
-    #VisualizeTracker('cam_9', 10, (1920, 1080)).run_visualizations()
+        VisualizeDetector('cam_1', 10, (1280, 960)).run_visualizations()
+    
+    tr = Tracker('cam_1')
+    tr.run_tracker(detection_dict)
+    VisualizeTracker('cam_1', 10, (1280, 960)).run_visualizations()
 
 
 if __name__ == '__main__':

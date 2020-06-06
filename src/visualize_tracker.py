@@ -79,7 +79,7 @@ class VisualizeTracker():
                         Y = int(Y1 + 0.5 * (Y2 - Y1))
 
                         cv2.rectangle(img, (X1, Y1), (X2, Y2), (0, 0, 255), 2) #write bounding box onto video
-                        cv2.putText(img, vehicleType + ": " + str(ID), (X, Y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 0, 0))
+                        cv2.putText(img, vehicleType + ": " + str(ID), (X, Y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
         
         self.out_video.write(img)
@@ -99,11 +99,11 @@ class VisualizeTracker():
             imgName = images[i]
             frameNum = int(imgName.replace(".jpg", ""))
             img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, imgName)) #read the images
-            img = self.write_video_frame(img, framepkl, trackpkl, frameNum) #write the images
+            img = self.write_video_frame(img, framepkl, trackpkl, i) #write the images
             cv2.imwrite(os.path.join(self.out_dir, imgName), img)
 
         self.out_video.release() #release the video
 
 if __name__=='__main__':
     
-    VisualizeTracker('cam_9', 10, (1920, 1080)).run_visualizations()
+    VisualizeTracker('cam_1', 10, (1280, 960)).run_visualizations()
