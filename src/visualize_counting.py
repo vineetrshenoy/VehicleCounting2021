@@ -3,6 +3,7 @@ import sys
 import cv2
 import numpy as np
 import configparser
+import glob
 from tqdm import tqdm
 
 
@@ -56,9 +57,9 @@ class VisualizeCounting():
         for j in range(0, N):
 
             mvt = mvts[j, :]
-            text = '{}-{}'.format(cat_dict[mvt[3]],str(mvt[2]))
+            text = '{}-{}-{}'.format(cat_dict[mvt[3]],str(mvt[2]), str(mvt[4]))
             loc = mvt_dict[mvt[2]]
-            cv2.putText(img, text, loc, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3, cv2.LINE_AA)
+            cv2.putText(img, text, loc, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 3, cv2.LINE_AA)
 
         return img
 
@@ -82,14 +83,15 @@ class VisualizeCounting():
         
         poly = np.array([[1, 150], [844, 96], [1277, 277], [1277, 750], [2, 683]])
         results = self.read_counting_file()
-        images = sorted(os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)))
+        imgLoc = 'src/vc_outputs/aicity/tracker_output'
+        images = sorted(glob.glob(os.path.join(imgLoc, self.cam_ident, '*.jpg')))
         N = len(images)
 
         
         imgLoc = 'src/vc_outputs/aicity/tracker_output'
         for i in tqdm(range(0, N)):
 
-            imageName = os.path.join(imgLoc, self.cam_ident, images[i]) # image i+1.jpg
+            imageName = os.path.join(imgLoc, self.cam_ident, os.path.basename(images[i])) # image i+1.jpg
             img = cv2.imread(imageName)
             imgNum = i + 1
             cv2.polylines(img, np.int32([poly]), 1, (0, 255, 0), 1, cv2.LINE_AA)
@@ -103,10 +105,10 @@ class VisualizeCounting():
                 img = self.write_on_frame(img, results[indices, :])
 
                 #i = i + len(indices)
-                outfile = os.path.join(self.out_dir, os.path.basename(imageName))
-                cv2.imwrite(outfile, img)
+                
             
-            
+            outfile = os.path.join(self.out_dir, os.path.basename(imageName))
+            cv2.imwrite(outfile, img)
             self.out_video.write(img)
 
         

@@ -67,13 +67,14 @@ class Tracker():
         frameBox = {}
         trackBox = {}
 
+        THRESHOLD = float(self.config['THRESHOLD'])
+
         for frameCount in tqdm(range(0, len(vehicle_dtcs))): #For every frame
 
             frame = vehicle_dtcs[frameCount] #get detections for that frame
-            THRESHOLD = float(self.config['THRESHOLD'])
+            
             NMS = list(filter(lambda detect: detect[4] > THRESHOLD, frame)) #Get all detections that exceed THRESHOLD
             NMS = np.array(NMS)
-            
             tracker_output = objectTracker.update(NMS) #Update the tracker
             index = (frameCount + 1) * int(self.config['step']) - 1
             self.process_tracker_output(tracker_output, frameBox, trackBox, index) #Get results in format for additional consumption

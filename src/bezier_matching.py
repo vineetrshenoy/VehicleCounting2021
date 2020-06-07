@@ -208,7 +208,7 @@ class BezierMatching:
     #
     def process_tracking_results(self, data, cat_id):
 
-        for trackerID in tqdm(data.keys()): #for each tracked vehicle
+        for trackerID in tqdm(sorted(data.keys())): #for each tracked vehicle
 
             tracked_vehicle = data[trackerID]
             N = len(tracked_vehicle) #N boxes of tracked coordinates
@@ -227,7 +227,7 @@ class BezierMatching:
             frame_id = tracked_vehicle[N - 1][0] + 1 #tracker is zero-indexed
             video_id = 1
 
-            self.track1txt.write('{} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id))
+            self.track1txt.write('{} {} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id, trackerID))
 
         
 
