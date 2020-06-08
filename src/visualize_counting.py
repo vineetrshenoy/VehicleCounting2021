@@ -12,7 +12,7 @@ config.read(sys.argv[1])
 
 class VisualizeCounting():
 
-    def __init__(self, counting_file, cam_ident, fps, size_tup):
+    def __init__(self, counting_file, cam_ident, fps, size_tup=(int(config['DEFAULT']['width']), int(config['DEFAULT']['height']))):
         self.default = config['DEFAULT']
         self.cam_ident = cam_ident
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output') #set output directory
@@ -20,7 +20,7 @@ class VisualizeCounting():
         self.track1txt = counting_file
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.default['job_name'] + '.avi') 
-        frame_dim = (self.default['frame_width'], self.default['frame_height'])
+        frame_dim = (self.default['width'], self.default['height'])
         self.out_video = cv2.VideoWriter(video_name, self.fourcc, fps, size_tup) 
         
     ##
@@ -51,7 +51,7 @@ class VisualizeCounting():
 
         N = mvts.shape[0]
 
-        mvt_dict = {1: (100, 220), 2: (1050, 175), 3: (1050, 175), 4:(1175, 600)}
+        mvt_dict = {1: (100,300), 2: (1000, 1000), 3: (1650, 925)}
         cat_dict = {1: 'CAR', 2: 'TRUCK'}
 
         for j in range(0, N):
@@ -81,7 +81,7 @@ class VisualizeCounting():
     #
     def workflow(self):
         
-        poly = np.array([[1, 150], [844, 96], [1277, 277], [1277, 750], [2, 683]])
+        poly = np.array([[2, 228], [1916, 300], [1916, 1076], [2, 1074]])
         results = self.read_counting_file()
         imgLoc = 'src/vc_outputs/aicity/tracker_output'
         images = sorted(glob.glob(os.path.join(imgLoc, self.cam_ident, '*.jpg')))
@@ -118,5 +118,5 @@ if __name__=='__main__':
     counting_file = sys.argv[2]
     cam_ident = sys.argv[3]
 
-    vc = VisualizeCounting(counting_file, cam_ident, 10, (1280, 960))
+    vc = VisualizeCounting(counting_file, cam_ident, 10)
     vc.workflow()

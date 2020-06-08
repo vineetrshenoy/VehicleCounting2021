@@ -295,7 +295,7 @@ class DetectDetectron:
 if __name__ == '__main__':
 
     
-    dt = DetectDetectron('cam_1', 10, (1280, 960))
+    dt = DetectDetectron('cam_9', 10, (1280, 960))
     dt.run_predictions()
     #logger.info()
     print('Hello World')
