@@ -92,7 +92,7 @@ paths = {
 #
 class DetectDetectron:
 
-    def __init__(self, cam_ident, fps, size_tup):
+    def __init__(self, cam_ident, fps, size_tup=(int(config['DEFAULT']['width']), int(config['DEFAULT']['height']))):
         self.paths = paths
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
@@ -221,16 +221,24 @@ class DetectDetectron:
     #
     def visualize_detections(self, img, detections, file_name):
         
-        for vehicle in detections:
+        poly = self.paths[self.cam_ident].vertices
+        cv2.polylines(img, np.int32([poly]), 1, (0, 255, 0), 1, cv2.LINE_AA)
+        cat_dict = {1: 'Car', 2: 'Bus', 3: 'Truck'}
 
+        i = 0
+        for vehicle in detections:
+            i = i + 1
             for bbox in vehicle:
 
                 top_left = (int(bbox[0]), int(bbox[1]))
                 bottom_right = (int(bbox[2]), int(bbox[3]))
                 cv2.rectangle(img, top_left, bottom_right, (0, 0, 255), 2)
+
+                text = '{}-{}'.format(cat_dict[i], np.around(bbox[4], 3))
+                cv2.putText(img, text, top_left, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1, cv2.LINE_AA)
                 cv2.imwrite(file_name, img)
 
-        #self.out_video.write(img)
+        self.out_video.write(img)
         return img
 
     ##
@@ -256,12 +264,12 @@ class DetectDetectron:
 
             detections = self.process_outputs(outputs)
             frame = self.get_frame_number(os.path.join(self.default['data_dir'], self.cam_ident, files[i]))
-            '''
+            
             if int(self.config['visualize']) == 1:
 
                 file_name = os.path.join(self.out_dir, files[i])
                 self.visualize_detections(img, detections, file_name)
-            '''    
+                
             detection_dict[frame] = detections
         
         end_process_time = time.process_time()
@@ -286,8 +294,8 @@ class DetectDetectron:
 
 if __name__ == '__main__':
 
-    filepath = sys.argv[1]
-    dt = DetectDetectron(sys.argv[2], 10, (320,240))
+    
+    dt = DetectDetectron('cam_9', 10, (1280, 960))
     dt.run_predictions()
     #logger.info()
     print('Hello World')

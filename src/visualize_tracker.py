@@ -17,7 +17,7 @@ config.read(sys.argv[1])
 #
 class VisualizeTracker():
 
-    def __init__(self, cam_ident, fps, size_tup):
+    def __init__(self, cam_ident, fps, size_tup=(int(config['DEFAULT']['width']), int(config['DEFAULT']['height']))):
         self.default = config['DEFAULT']
         self.config = config['TRACKING']
         self.cam_ident = cam_ident
@@ -25,7 +25,7 @@ class VisualizeTracker():
         
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
-        frame_dim = (self.default['frame_width'], self.default['frame_height'])
+        frame_dim = (self.default['width'], self.default['height'])
         self.out_video = cv2.VideoWriter(video_name, self.fourcc, fps, size_tup) #TODO: CAN NOT HARDCODE
         
         print()

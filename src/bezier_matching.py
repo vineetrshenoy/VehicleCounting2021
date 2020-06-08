@@ -9,12 +9,21 @@ from tqdm import tqdm
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
+'''
 bezier_curves = {
     
     1: np.array([[990, 2], [150, 320]]),
     2: np.array([[2, 1060], [400, 190]]),
     3: np.array([[1275, -50, 1060], [460, 400, 190]]),
     4: np.array([[2, 600, 1275], [500, 450, 545]])
+}
+'''
+bezier_curves = {
+    
+    1: np.array([[600, 2], [240, 640]]),
+    2: np.array([[750, 400], [250, 1076]]),
+    3: np.array([[967, 1000, 1916], [255, 800, 760]])
+    
 }
 
 
@@ -56,7 +65,7 @@ class BezierMatching:
        
         dot_product = np.sum(point_curve_diff*endpoint_diff, axis=1)       
         
-        assert np.sum(dot_product) < 1e-5 #assert orthogonal property is satisfied
+        #assert np.sum(dot_product) < 1e-5 #assert orthogonal property is satisfied
         
         return np.linalg.norm(point_curve_diff)
 
@@ -87,7 +96,7 @@ class BezierMatching:
 
         dot_product = np.sum(dt*diff, axis=1)      
         
-        assert np.sum(dot_product) < 1e-5 #assert orthogonal property is satisfied
+        #assert np.sum(dot_product) < 1e-5 #assert orthogonal property is satisfied
         
         return np.linalg.norm(diff)
 
@@ -180,12 +189,16 @@ class BezierMatching:
     #
     def project_on_movements(self, coor):
 
+        THRESHOLD = float(self.config['THRESHOLD'])
         mvt_scores = np.zeros(len(self.bezier_curves.keys()))
         for mvt in self.bezier_curves.keys():
 
             if np.shape(self.bezier_curves[mvt])[1] == 2: #linear movement
                 t = self.get_linear_t(coor, mvt) 
-                if np.sum(np.diff(t) < 0) / len(t) > float(self.config['THRESHOLD']): #t is decreasing -- wrong direction
+                diff = np.sum(np.diff(t) < 0) / len(t)
+                neg = np.sum(t < 0) / len(t)
+                pos = np.sum(t > 1) / len(t)
+                if (diff > THRESHOLD) or (neg > THRESHOLD) or (pos > THRESHOLD): #t is decreasing -- wrong direction
                     mvt_scores[mvt - 1] = np.iinfo(np.int32).max
                 else:
                     score = self.get_linear_score(t, mvt, coor)
@@ -193,13 +206,17 @@ class BezierMatching:
             
             else: #quadratic movement
                 t = self.get_quadratic_t(coor, mvt)
-                if np.sum(np.diff(t) < 0) / len(t) > float(self.config['THRESHOLD']): #t is decreasing -- wrong direction
+                diff = np.sum(np.diff(t) < 0) / len(t)
+                neg = np.sum(t < 0) / len(t)
+                pos = np.sum(t > 1) / len(t)
+                if (diff > THRESHOLD) or (neg > THRESHOLD) or (pos > THRESHOLD): #t is decreasing -- wrong direction
                     mvt_scores[mvt - 1] = np.iinfo(np.int32).max
                 else:
                     score = self.get_quadratic_score(t, mvt, coor)
                     mvt_scores[mvt - 1] = score
         
-        return np.argmin(mvt_scores) + 1
+        mvt = np.argmin(mvt_scores) + 1 if np.sum(mvt_scores < np.iinfo(np.int32).max) > 0 else -1
+        return mvt
 
     ##
     # Begins the bezier matching process.
@@ -208,7 +225,7 @@ class BezierMatching:
     #
     def process_tracking_results(self, data, cat_id):
 
-        for trackerID in tqdm(data.keys()): #for each tracked vehicle
+        for trackerID in tqdm(sorted(data.keys())): #for each tracked vehicle
 
             tracked_vehicle = data[trackerID]
             N = len(tracked_vehicle) #N boxes of tracked coordinates
@@ -220,14 +237,16 @@ class BezierMatching:
                 box = tracked_vehicle[i][1]
                 # N columns, coor[0, i] is x-coor, coor[1, i] is y-coor
                 coor[0,i] = box[0] + (box[2] - box[0]) / 2
-                coor[1,i] = box[1] + (box[3] - box[1]) / 2
+                coor[1,i] = box[3]
 
                   
             mvt_id = self.project_on_movements(coor)
-            frame_id = tracked_vehicle[N - 1][0] + 1 #tracker is zero-indexed
-            video_id = 1
 
-            self.track1txt.write('{} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id))
+            if mvt_id != -1:
+                frame_id = tracked_vehicle[N - 1][0] + 1 #tracker is zero-indexed
+                video_id = 1
+
+                self.track1txt.write('{} {} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id, trackerID))
 
         
 
@@ -264,4 +283,4 @@ class BezierMatching:
 if __name__ == '__main__':
     
    
-    BezierMatching('cam_1').workflow()
+    BezierMatching('cam_10').workflow()
