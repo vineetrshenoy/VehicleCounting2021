@@ -12,16 +12,16 @@ config.read(sys.argv[1])
 
 class VisualizeCounting():
 
-    def __init__(self, counting_file, cam_ident, fps, size_tup=(int(config['DEFAULT']['width']), int(config['DEFAULT']['height']))):
+    def __init__(self):
         self.default = config['DEFAULT']
-        self.cam_ident = cam_ident
+        self.cam_ident = self.default['cam_name']
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output') #set output directory
         
-        self.track1txt = counting_file
+        self.track1txt = self.default['counting_file']
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.default['job_name'] + '.avi') 
-        frame_dim = (self.default['width'], self.default['height'])
-        self.out_video = cv2.VideoWriter(video_name, self.fourcc, fps, size_tup) 
+        frame_dim = (int(self.default['width']), int(self.default['height']))
+        self.out_video = cv2.VideoWriter(video_name, self.fourcc, int(self.default['fps']), frame_dim) 
         
     ##
     # Reads and sorts the counting file results
@@ -118,5 +118,5 @@ if __name__=='__main__':
     counting_file = sys.argv[2]
     cam_ident = sys.argv[3]
 
-    vc = VisualizeCounting(counting_file, cam_ident, 10)
+    vc = VisualizeCounting()
     vc.workflow()

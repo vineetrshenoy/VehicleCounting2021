@@ -5,3 +5,4 @@ pytorch/
 pytorch.def
 config/
 slurm_scripts/
+src/vc_outputs/

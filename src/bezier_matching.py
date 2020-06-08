@@ -30,10 +30,10 @@ bezier_curves = {
 
 class BezierMatching:
 
-    def __init__(self, cam_ident, bezier_curves=bezier_curves):
+    def __init__(self, bezier_curves=bezier_curves):
         self.config = config['BEZIER']
         self.default = config['DEFAULT']
-        self.cam_ident = cam_ident
+        self.cam_ident = self.default['cam_name']
         self.bezier_curves = bezier_curves
         
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output') #set output directory
@@ -283,4 +283,4 @@ class BezierMatching:
 if __name__ == '__main__':
     
    
-    BezierMatching('cam_10').workflow()
+    BezierMatching().workflow()
