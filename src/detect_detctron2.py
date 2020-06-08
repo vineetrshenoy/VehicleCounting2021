@@ -8,6 +8,7 @@ import torch
 import time
 torch.cuda.current_device()
 import app_logger
+from helper import Helper
 
 from detectron2.modeling import build_model
 from detectron2.config import get_cfg
@@ -101,7 +102,7 @@ class DetectDetectron:
         self.cfg = cfg
         self.cam_ident = self.default['cam_name']
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'detection_output', self.cam_ident)
-        
+        self.roi = Helper.get_roi(self.default['roi'])
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
         frame_dim = (int(self.default['width']), int(self.default['height']))
@@ -173,7 +174,7 @@ class DetectDetectron:
             tup = (x1, y1, x2, y2, scores[i].item())
             
             cat = classes[i].item() #category
-            bbPath = self.paths[self.cam_ident] #gets the ROI coordinates
+            bbPath = mplPath.Path(self.roi) #gets the ROI coordinates
 
             #if contains point, add to list of detections
             #if True:
@@ -221,8 +222,8 @@ class DetectDetectron:
     #
     def visualize_detections(self, img, detections, file_name):
         
-        poly = self.paths[self.cam_ident].vertices
-        cv2.polylines(img, np.int32([poly]), 1, (0, 255, 0), 1, cv2.LINE_AA)
+        
+        cv2.polylines(img, np.int32([self.roi]), 1, (0, 255, 0), 1, cv2.LINE_AA)
         cat_dict = {1: 'Car', 2: 'Bus', 3: 'Truck'}
 
         i = 0
