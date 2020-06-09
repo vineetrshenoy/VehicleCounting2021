@@ -17,17 +17,16 @@ config.read(sys.argv[1])
 
 def main() -> None:
     
-    #dt = DetectDetectron()
-    #detection_dict = dt.run_predictions()
+    dt = DetectDetectron()
+    detection_dict = dt.run_predictions()
 
     '''
     if int(config['DETECTION']['visualize']) == 1:
         VisualizeDetector('cam_1', 10, (1280, 960)).run_visualizations()
     '''
 
-
-    #Tracker().run_tracker(detection_dict)
-    #VisualizeTracker().run_visualizations()
+    Tracker().run_tracker(detection_dict)
+    VisualizeTracker().run_visualizations()
     BezierMatching().workflow()
     VisualizeCounting().workflow()
 if __name__ == '__main__':

@@ -18,25 +18,19 @@ bezier_curves = {
     4: np.array([[2, 600, 1275], [500, 450, 545]])
 }
 '''
-bezier_curves = {
-    
-    1: np.array([[600, 2], [240, 640]]),
-    2: np.array([[750, 400], [250, 1076]]),
-    3: np.array([[967, 1000, 1916], [255, 800, 760]])
-    
-}
 
 
 
 class BezierMatching:
 
-    def __init__(self, bezier_curves=bezier_curves):
+    def __init__(self):
         self.config = config['BEZIER']
         self.default = config['DEFAULT']
         self.cam_ident = self.default['cam_name']
-        self.bezier_curves = bezier_curves
+        with open(os.path.join(self.config['curves'], self.cam_ident + '.pkl'), 'rb') as f:
+            self.bezier_curves = pickle.load(f)
         
-        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output') #set output directory
+        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.cam_ident) #set output directory
         os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
         self.track1txt = open(os.path.join(self.out_dir, self.default['job_name'] + '.txt'), 'w')
 
@@ -284,3 +278,16 @@ if __name__ == '__main__':
     
    
     BezierMatching().workflow()
+    '''
+    bezier_curves = {
+    
+    1: np.array([[600, 2], [240, 640]]),
+    2: np.array([[750, 400], [250, 1076]]),
+    3: np.array([[967, 1000, 1916], [255, 800, 760]])
+    
+    }
+    
+    with open('cam_10.pkl', 'wb') as f:
+        pickle.dump(bezier_curves, f)
+
+    '''
