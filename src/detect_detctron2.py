@@ -283,7 +283,7 @@ class DetectDetectron:
         logger.info('min: ' + str(np.min(frame_times)))
         logger.info('Total: ' + str(end_process_time - start_process_time))
 
-        np.save(self.default['job_name'] +'_' + self.cam_ident + '.npy', frame_times) 
+        #np.save(self.default['job_name'] +'_' + self.cam_ident + '.npy', frame_times) 
         
         if (int(self.config['visualize'])) == 1:
             self.out_video.release() #release the video

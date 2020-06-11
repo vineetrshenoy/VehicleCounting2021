@@ -22,9 +22,15 @@ class BezierMatching:
         self.cam_ident = self.default['cam_name']
         self.bezier_curves = Helper.load_bezier_curve(os.path.join(self.config['curves'], self.cam_ident + '.txt'))
         
-        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.cam_ident) #set output directory
+        #self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.cam_ident) #set output directory
+        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output')
         os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
-        self.track1txt = open(os.path.join(self.out_dir, self.default['job_name'] + '.txt'), 'w')
+
+        text_file = os.path.join(self.out_dir, self.default['job_name'] + '.txt')
+        append_write = 'w'
+        if os.path.exists(text_file):
+            append_write = 'a'
+        self.track1txt = open(os.path.join(self.out_dir, self.default['job_name'] + '.txt'), append_write)
 
 
     
@@ -140,7 +146,7 @@ class BezierMatching:
         t = np.zeros(coor_len)
 
 
-        def get_shortest_distance_root_index(roots, indices, i):
+        def get_shortest_distance_root_index(roots, i):
             
             points = self.bezier_curves[mvt]
         
@@ -148,9 +154,9 @@ class BezierMatching:
             pt1 = points[:, 0].reshape(1,2) 
             pt2 = points[:, 1].reshape(1,2) 
             pt3 = points[:, 2].reshape(1,2)
-            N = len(indices)
+            N = len(roots)
             
-            t_val = roots[indices]
+            t_val = roots
             pts = np.kron(np.square(1 - t_val), pt1) + np.kron(2 * (1 - t_val) * t_val, pt2) + np.kron(np.square(t_val), pt3)
             pts = pts.reshape((N,2)) #rows of [x, y] coordinates
             distance = np.square(pts - np.tile(coor[:, i].T, (N, 1)))
@@ -161,9 +167,8 @@ class BezierMatching:
             
         for i in range(0, coor_len): #need loop because np.roots can not be vectorized
             roots = np.roots([fourth, third, second[i], first[i]]) #only 'second' and 'first' depend on different xn,yn coordinates
-            indices = np.where(np.logical_and(roots>=0, roots<=1))[0]
-            t[i] = get_shortest_distance_root_index(roots, indices, i)
-
+            indices = np.isreal(roots)
+            t[i] = get_shortest_distance_root_index(roots[indices], i)
         
         return t
 
@@ -230,9 +235,10 @@ class BezierMatching:
 
             if mvt_id != -1:
                 frame_id = tracked_vehicle[N - 1][0] + 1 #tracker is zero-indexed
-                video_id = 1
+                video_id = self.default['vid_id']
 
-                self.track1txt.write('{} {} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id, trackerID))
+                #self.track1txt.write('{} {} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id, trackerID))
+                #self.track1txt.write('{} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id))
 
         
 

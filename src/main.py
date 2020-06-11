@@ -26,9 +26,9 @@ def main() -> None:
     '''
 
     Tracker().run_tracker(detection_dict)
-    VisualizeTracker().run_visualizations()
+    #VisualizeTracker().run_visualizations()
     BezierMatching().workflow()
-    VisualizeCounting().workflow()
+    #VisualizeCounting().workflow()
 if __name__ == '__main__':
 
     main()
