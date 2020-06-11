@@ -8,6 +8,7 @@ import torch
 import time
 torch.cuda.current_device()
 import app_logger
+from helper import Helper
 
 from detectron2.modeling import build_model
 from detectron2.config import get_cfg
@@ -92,20 +93,20 @@ paths = {
 #
 class DetectDetectron:
 
-    def __init__(self, cam_ident, fps, size_tup=(int(config['DEFAULT']['width']), int(config['DEFAULT']['height']))):
+    def __init__(self):
         self.paths = paths
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
         predictor, cfg = self.load_model()
         self.predictor = predictor
         self.cfg = cfg
-        self.cam_ident = cam_ident
+        self.cam_ident = self.default['cam_name']
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'detection_output', self.cam_ident)
-        
+        self.roi = Helper.get_roi(self.default['roi'])
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
-        #frame_dim = (self.default['frame_width'], self.default['frame_height'])
-        self.out_video = cv2.VideoWriter(video_name, self.fourcc, fps, size_tup) #TODO: CAN NOT HARDCODE
+        frame_dim = (int(self.default['width']), int(self.default['height']))
+        self.out_video = cv2.VideoWriter(video_name, self.fourcc, int(self.default['fps']), frame_dim) 
         os.makedirs(self.out_dir, exist_ok=True)
     ##
     # Loads a model for inference
@@ -173,7 +174,7 @@ class DetectDetectron:
             tup = (x1, y1, x2, y2, scores[i].item())
             
             cat = classes[i].item() #category
-            bbPath = self.paths[self.cam_ident] #gets the ROI coordinates
+            bbPath = mplPath.Path(self.roi) #gets the ROI coordinates
 
             #if contains point, add to list of detections
             #if True:
@@ -221,8 +222,8 @@ class DetectDetectron:
     #
     def visualize_detections(self, img, detections, file_name):
         
-        poly = self.paths[self.cam_ident].vertices
-        cv2.polylines(img, np.int32([poly]), 1, (0, 255, 0), 1, cv2.LINE_AA)
+        
+        cv2.polylines(img, np.int32([self.roi]), 1, (0, 255, 0), 1, cv2.LINE_AA)
         cat_dict = {1: 'Car', 2: 'Bus', 3: 'Truck'}
 
         i = 0
@@ -295,7 +296,7 @@ class DetectDetectron:
 if __name__ == '__main__':
 
     
-    dt = DetectDetectron('cam_9', 10, (1280, 960))
+    dt = DetectDetectron()
     dt.run_predictions()
     #logger.info()
     print('Hello World')

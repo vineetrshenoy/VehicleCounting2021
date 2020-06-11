@@ -20,10 +20,10 @@ class Tracker():
     # Initializes the Tracker object
     # @param cam_ident Camera identifier, by video according to AICITY2020 challenge
     #
-    def __init__(self, cam_ident):
+    def __init__(self):
         self.config = config['TRACKING']
         self.default = config['DEFAULT']
-        self.cam_ident = cam_ident
+        self.cam_ident = self.default['cam_name']
 
         
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'tracker_output', self.cam_ident) #set output directory
@@ -117,7 +117,7 @@ if __name__=='__main__':
     with open(filepath, 'rb') as f:
         data = pickle.load(f)
 
-    tr = Tracker('cam_1')
+    tr = Tracker()
     tr.run_tracker(data)
 
     

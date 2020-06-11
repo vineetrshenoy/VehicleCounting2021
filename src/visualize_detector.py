@@ -24,16 +24,16 @@ config.read(sys.argv[1])
 #
 class VisualizeDetector():
 
-    def __init__(self, cam_ident, fps, size_tup):
+    def __init__(self):
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
-        self.cam_ident = cam_ident
+        self.cam_ident = self.default['cam_name']
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'detection_output', self.cam_ident)
         
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
-        frame_dim = (self.default['frame_width'], self.default['frame_height'])
-        self.out_video = cv2.VideoWriter(video_name, self.fourcc, fps, size_tup) #TODO: CAN NOT HARDCODE
+        frame_dim = (int(self.default['frame_width']), int(self.default['frame_height']))
+        self.out_video = cv2.VideoWriter(video_name, self.fourcc, int(self.default['fps']), frame_dim) #TODO: CAN NOT HARDCODE
         
 
 
@@ -81,4 +81,4 @@ class VisualizeDetector():
 
 if __name__=='__main__':
     
-    VisualizeDetector('cam_9', 10, (1920, 1080)).run_visualizations()
+    VisualizeDetector().run_visualizations()

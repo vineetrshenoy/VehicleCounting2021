@@ -5,23 +5,23 @@ import numpy as np
 import configparser
 import glob
 from tqdm import tqdm
-
+from helper import Helper
 
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
 class VisualizeCounting():
 
-    def __init__(self, counting_file, cam_ident, fps, size_tup=(int(config['DEFAULT']['width']), int(config['DEFAULT']['height']))):
+    def __init__(self):
         self.default = config['DEFAULT']
-        self.cam_ident = cam_ident
-        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output') #set output directory
-        
-        self.track1txt = counting_file
+        self.cam_ident = self.default['cam_name']
+        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.cam_ident) #set output directory
+        self.roi = Helper.get_roi(self.default['roi'])
+        self.track1txt = self.default['counting_file']
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.default['job_name'] + '.avi') 
-        frame_dim = (self.default['width'], self.default['height'])
-        self.out_video = cv2.VideoWriter(video_name, self.fourcc, fps, size_tup) 
+        frame_dim = (int(self.default['width']), int(self.default['height']))
+        self.out_video = cv2.VideoWriter(video_name, self.fourcc, int(self.default['fps']), frame_dim) 
         
     ##
     # Reads and sorts the counting file results
@@ -81,7 +81,7 @@ class VisualizeCounting():
     #
     def workflow(self):
         
-        poly = np.array([[2, 228], [1916, 300], [1916, 1076], [2, 1074]])
+        
         results = self.read_counting_file()
         imgLoc = 'src/vc_outputs/aicity/tracker_output'
         images = sorted(glob.glob(os.path.join(imgLoc, self.cam_ident, '*.jpg')))
@@ -94,7 +94,7 @@ class VisualizeCounting():
             imageName = os.path.join(imgLoc, self.cam_ident, os.path.basename(images[i])) # image i+1.jpg
             img = cv2.imread(imageName)
             imgNum = i + 1
-            cv2.polylines(img, np.int32([poly]), 1, (0, 255, 0), 1, cv2.LINE_AA)
+            cv2.polylines(img, np.int32([self.roi]), 1, (0, 255, 0), 1, cv2.LINE_AA)
 
 
             if np.sum(np.array(results[:, 1] == imgNum)) > 0:
@@ -115,8 +115,5 @@ class VisualizeCounting():
 
 if __name__=='__main__':
 
-    counting_file = sys.argv[2]
-    cam_ident = sys.argv[3]
-
-    vc = VisualizeCounting(counting_file, cam_ident, 10)
+    vc = VisualizeCounting()
     vc.workflow()
