@@ -17,9 +17,9 @@ class VisualizeCounting():
         self.cam_ident = self.default['cam_name']
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.cam_ident) #set output directory
         self.roi = Helper.get_roi(self.default['roi'])
-        self.track1txt = self.default['counting_file']
+        self.track1txt = os.path.join(self.out_dir, self.cam_ident + '.txt')
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
-        video_name = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.default['job_name'] + '.avi') 
+        video_name = os.path.join(self.out_dir, self.cam_ident + '.avi') 
         frame_dim = (int(self.default['width']), int(self.default['height']))
         self.out_video = cv2.VideoWriter(video_name, self.fourcc, int(self.default['fps']), frame_dim) 
         

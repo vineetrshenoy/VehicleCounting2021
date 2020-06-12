@@ -21,6 +21,7 @@ class BezierMatching:
         self.default = config['DEFAULT']
         self.cam_ident = self.default['cam_name']
         self.bezier_curves = Helper.load_bezier_curve(os.path.join(self.config['curves'], self.cam_ident + '.txt'))
+
         
         #self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.cam_ident) #set output directory
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output')

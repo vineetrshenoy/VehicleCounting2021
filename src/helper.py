@@ -41,14 +41,14 @@ class Helper():
             coor_list = coor_list.split(',')
             M = len(coor_list)
             
-            arr = np.zeros((int(M/2), 2))
+            arr = np.zeros((2, int(M/2)))
 
             for j in range(0, int(M/2)):
 
-                arr[j, 0] = int(coor_list[2*j])
-                arr[j, 1] = int(coor_list[2*j + 1])
+                arr[0, j] = int(coor_list[2*j])
+                arr[1, j] = int(coor_list[2*j + 1])
 
-            mvt_dict[i +1] = arr.T
+            mvt_dict[i +1] = arr
 
         return mvt_dict
 
@@ -56,4 +56,4 @@ class Helper():
 if __name__ == '__main__':
 
     #Helper.get_roi('2,228,1916,300,1916,1076,2,1074')
-    Helper.load_bezier_curve('/vulcan/scratch/vshenoy/vehicle_counting/src/bezier_curves/cam_9.txt')
+    Helper.load_bezier_curve('/vulcan/scratch/vshenoy/vehicle_counting/src/bezier_curves/cam_10.txt')
