@@ -239,7 +239,7 @@ class BezierMatching:
                 video_id = self.default['vid_id']
 
                 #self.track1txt.write('{} {} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id, trackerID))
-                #self.track1txt.write('{} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id))
+                self.track1txt.write('{} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id))
 
         
 
