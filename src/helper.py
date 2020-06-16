@@ -7,7 +7,11 @@ import numpy as np
 
 class Helper():
 
-
+    ##
+    #   Processes the ROI from the config file in a format for code
+    #   @param coor ROI string, stored as x1, y1, x2, y2,  ... , xn, yn
+    #   @returns arr numpy-array of coordinates
+    #
     @staticmethod
     def get_roi(coor:str):
 
@@ -24,6 +28,11 @@ class Helper():
 
         return arr
 
+    ##
+    #   Loads the bezier curves from a file
+    #   @param filename The file storing the bezier curves
+    #   @returns mvt_dict Movements stored as a dictionary
+    #
     @staticmethod
     def load_bezier_curve(filename):
 
@@ -52,6 +61,11 @@ class Helper():
 
         return mvt_dict
 
+    ##
+    #   Loads the display locations from a file
+    #   @param filename The file from which to get the locations
+    #   @returns loc_dict The location dictionary
+    #
     @staticmethod
     def load_display_locations(filename):
 
@@ -60,17 +74,17 @@ class Helper():
 
         N = len(coor)
 
-        mvt_dict = {}
+        loc_dict = {}
 
         for i in range(0, N):
             
             coor_list = coor[i].decode('utf-8').rstrip()
             coor_list = coor_list.split(',')
 
-            mvt_dict[i + 1] = (int(coor_list[0]), int(coor_list[1]))
+            loc_dict[i + 1] = (int(coor_list[0]), int(coor_list[1]))
 
         
-        return mvt_dict
+        return loc_dict
 
 if __name__ == '__main__':
 

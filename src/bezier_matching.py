@@ -206,9 +206,10 @@ class BezierMatching:
         return mvt
 
     ##
-    # Begins the bezier matching process.
+    # Obtains movement and writes to file.
     # @param data The pickle file stored from tracker.py 
-    # @returns DefaultPredictor, cfg object
+    # @param cat_id The category of the tracker (i.e. Car, bus truck) as an int
+    # 
     #
     def process_tracking_results(self, data, cat_id):
 

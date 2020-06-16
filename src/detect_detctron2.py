@@ -28,73 +28,13 @@ config.read(sys.argv[1])
 
 
 
-cam_1_path = mplPath.Path(np.array([[1, 150], [844, 96], [1277, 277], [1277, 750], [2, 683]]))
-cam_2_path = mplPath.Path(np.array([[1, 26], [751, 24], [1277, 149], [1278, 718], [2, 717]]))
-cam_3_path = mplPath.Path(np.array([[1, 191], [1279, 86], [1278, 623], [1, 629]]))
-cam_4_path = mplPath.Path(np.array([[1, 198], [342, 116], [750, 81], [1279, 264], [1278, 956], [0, 956]]))
-cam_5_path = mplPath.Path(np.array([[1, 277], [450, 99], [599, 96], [1172, 280], [960, 955], [0, 956]]))
-cam_6_path = mplPath.Path(np.array([[1, 265], [496, 127], [793, 162], [1278, 453], [1279, 957], [0, 956]]))
-cam_7_path = mplPath.Path(np.array([[2, 415], [421, 386], [1277, 468], [1279, 716], [2, 596]]))
-cam_8_path = mplPath.Path(np.array([[3, 300], [1031, 2], [1567, 177], [1913, 576], [1917, 1074], [1, 1076]]))
-cam_9_path = mplPath.Path(np.array([[4, 270], [1036, 132], [1916, 280], [1918, 1076], [0,1074]]))
-cam_10_path = mplPath.Path(np.array([[2, 228], [1916, 300], [1916, 1076], [2, 1074]]))
-cam_11_path = mplPath.Path(np.array([[2,296], [1916, 306], [1918, 1076], [0, 1072]]))
-cam_12_path = mplPath.Path(np.array([[4, 172], [1522, 198], [1916, 312], [1916, 1076], [2, 1074]]))
-cam_13_path = mplPath.Path(np.array([[2, 126], [1916, 88], [1918, 1076], [2, 1074]]))
-cam_14_path = mplPath.Path(np.array([[2, 870], [2554, 1108], [2556, 1912], [2, 1912]]))
-cam_15_path = mplPath.Path(np.array([[4, 282], [858, 200], [1918, 360], [1916, 1074], [2, 1074]]))
-cam_16_path = mplPath.Path(np.array([[2, 198], [1918, 216], [1916, 1074], [2, 1072]]))
-cam_17_path = mplPath.Path(np.array([[0, 224], [1916, 222], [1916, 1076], [2, 1972]]))
-cam_18_path = mplPath.Path(np.array([[4, 276], [1920, 280], [1918, 1078], [2, 1072]]))
-cam_19_path = mplPath.Path(np.array([[2, 364], [1914, 374], [1916, 1074], [4, 1072]]))
-cam_20_path = mplPath.Path(np.array([[4, 512], [1918, 454], [1916, 1076], [2, 1074]]))
-
-paths = [None, cam_1_path, cam_2_path, cam_3_path, cam_4_path, cam_5_path, cam_6_path,
-cam_7_path, cam_8_path, cam_9_path, cam_10_path, cam_11_path, cam_12_path, cam_13_path,
-cam_14_path, cam_15_path, cam_16_path, cam_17_path, cam_18_path, cam_19_path, cam_20_path]
-
-
-paths = {
-	'cam_1': cam_1_path,
-	'cam_1_dawn': cam_1_path,
-	'cam_1_rain': cam_1_path,
-	'cam_2': cam_2_path,
-	'cam_2_rain': cam_2_path,
-	'cam_3': cam_3_path,
-	'cam_3_rain': cam_3_path,
-	'cam_4': cam_4_path,
-	'cam_4_dawn': cam_4_path,
-	'cam_4_rain': cam_4_path,
-	'cam_5': cam_5_path,
-	'cam_5_dawn': cam_5_path,
-	'cam_5_rain': cam_5_path,
-	'cam_6': cam_6_path,
-	'cam_6_snow': cam_6_path,
-	'cam_7': cam_7_path,
-	'cam_7_dawn': cam_7_path,
-	'cam_7_rain': cam_7_path,
-	'cam_8': cam_8_path,
-	'cam_9': cam_9_path,
-	'cam_10': cam_10_path,
-	'cam_11': cam_11_path,
-	'cam_12': cam_12_path,
-	'cam_13': cam_13_path,
-	'cam_14': cam_14_path,
-	'cam_15': cam_15_path,
-	'cam_16': cam_16_path,
-	'cam_17': cam_17_path,
-	'cam_18': cam_18_path,
-	'cam_19': cam_19_path,
-	'cam_20': cam_20_path
-}
-
 ##
 #   DetectDetectron class for performing detections using detectron2
 #
 class DetectDetectron:
 
     def __init__(self):
-        self.paths = paths
+        
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
         predictor, cfg = self.load_model()
@@ -102,12 +42,16 @@ class DetectDetectron:
         self.cfg = cfg
         self.cam_ident = self.default['cam_name']
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'detection_output', self.cam_ident)
+        os.makedirs(self.out_dir, exist_ok=True)
         self.roi = Helper.get_roi(self.default['roi'])
+        
+        ##Video visualization
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
         frame_dim = (int(self.default['width']), int(self.default['height']))
         self.out_video = cv2.VideoWriter(video_name, self.fourcc, int(self.default['fps']), frame_dim) 
-        os.makedirs(self.out_dir, exist_ok=True)
+        
+    
     ##
     # Loads a model for inference
     # @returns DefaultPredictor, cfg object
@@ -136,7 +80,8 @@ class DetectDetectron:
 
     ##
     #   Creates object structure for subsequent tracking
-    #   @param output 
+    #   @param raw_detections The detections for a single frame 
+    #   @returns detections The processed detections
     #
     def process_outputs(self, raw_detections: dict) -> list:
 
@@ -144,6 +89,7 @@ class DetectDetectron:
         scores = raw_detections['instances'].get_fields()['scores']
         classes = raw_detections['instances'].get_fields()['pred_classes'] 
         
+        #get detections only for these classes
         car_indices = np.where(classes.cpu() == 2)
         bus_indices = np.where(classes.cpu() == 5)
         truck_indices = np.where(classes.cpu() == 7)
@@ -162,7 +108,7 @@ class DetectDetectron:
                 
         for i in range(0, N): #for each box
 
-            #box = BoxMode.convert(boxes[i].tensor, BoxMode.XYXY_ABS, BoxMode.XYWH_ABS)[0]
+            
             centers = boxes[i].get_centers()[0]
                         
             box = boxes[i].tensor[0]
@@ -178,7 +124,7 @@ class DetectDetectron:
 
             #if contains point, add to list of detections
             #if True:
-            if bbPath.contains_point((centers[0].item(), centers[1].item())):
+            if bbPath.contains_point((centers[0].item(), centers[1].item())): #if inside the region of interest
                 
                 if scores[i].item() > float(self.config['score_thresh']):
 
@@ -189,6 +135,7 @@ class DetectDetectron:
                     else:
                         truck_detections.append(tup)
 
+        #Perform NMS per-class
         car_detections = self.perform_nms(car_detections)
         bus_detections = self.perform_nms(bus_detections)
         truck_detections = self.perform_nms(truck_detections)
@@ -196,11 +143,11 @@ class DetectDetectron:
         return detections
 
     ##
-    #   The detections for a certain class
+    #   Performs non-maximal supression on the bounding boxes
     #   @param detections
-    #   @returns 
+    #   @returns detections The detections after performing non-maximal supression
     #
-    def perform_nms(self, detections):
+    def perform_nms(self, detections: list) -> list:
 
         N = len(detections)
         scores = np.array([box[4] for box in detections])
@@ -214,13 +161,15 @@ class DetectDetectron:
         indices = nms(torch.from_numpy(boxes), torch.from_numpy(scores), float(self.config['iou']))
         indices = indices.numpy().tolist()
         return [detections[i] for i in indices]
+   
     ##
-    #   Runs the detection workflow
+    #   Displays the detections on the images
     #   @param img Input image
     #   @param detections Post-processed detections
-    #   @returns 
+    #   @param file_name The name of the image to save
+    #   @returns img Image with overlayed detections
     #
-    def visualize_detections(self, img, detections, file_name):
+    def visualize_detections(self, img, detections: list, file_name: str):
         
         
         cv2.polylines(img, np.int32([self.roi]), 1, (0, 255, 0), 1, cv2.LINE_AA)
@@ -244,7 +193,7 @@ class DetectDetectron:
 
     ##
     #   Runs the detection workflow
-    #   @param filepath Folder containing extracted images 
+    #   
     #
     def run_predictions(self):
 
