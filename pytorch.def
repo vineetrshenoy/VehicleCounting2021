@@ -6,9 +6,10 @@ Stage: build
 %post
     
     /opt/conda/bin/pip install cython
+    /opt/conda/bin/pip install pyperformance
     /opt/conda/bin/pip install -U 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
     /opt/conda/bin/python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     /opt/conda/bin/conda install -c conda-forge filterpy
     /opt/conda/bin/conda install -c conda-forge tqdm
 %help
-    This is a demo container for pytorch
+    Container for AICITY 2020 challenge code
