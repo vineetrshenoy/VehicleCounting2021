@@ -45,15 +45,16 @@ class VisualizeCounting():
         return data
 
     ##
-    #   Processes a filename
-    #   @param filename filepath for the image
-    #   @returns frame Frame number for certain file
+    #   Writes the counting results on the gram
+    #   @param img The image upon which to write
+    #   @param mvts The counted, annotated movements
+    #   @returns img Image overlayed with annotation
     #
     def write_on_frame(self, img, mvts):
 
         N = mvts.shape[0]
 
-        #mvt_dict = {1: (100,300), 2: (1000, 1000), 3: (1650, 925)}
+       
         cat_dict = {1: 'CAR', 2: 'TRUCK'}
 
         for j in range(0, N):
@@ -77,9 +78,9 @@ class VisualizeCounting():
         return int(frame)
 
     ##
-    # Reads and sorts the counting file results
+    # Runs the visualization process
     # 
-    # @returns DefaultPredictor, cfg object
+    # 
     #
     def workflow(self):
         
