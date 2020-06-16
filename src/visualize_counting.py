@@ -17,6 +17,8 @@ class VisualizeCounting():
         self.cam_ident = self.default['cam_name']
         self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.cam_ident) #set output directory
         self.roi = Helper.get_roi(self.default['roi'])
+
+        self.display_loc = Helper.load_display_locations(os.path.join('src/display_loc', self.cam_ident + '.txt'))
         self.track1txt = os.path.join(self.out_dir, self.cam_ident + '.txt')
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi') 
@@ -51,14 +53,14 @@ class VisualizeCounting():
 
         N = mvts.shape[0]
 
-        mvt_dict = {1: (100,300), 2: (1000, 1000), 3: (1650, 925)}
+        #mvt_dict = {1: (100,300), 2: (1000, 1000), 3: (1650, 925)}
         cat_dict = {1: 'CAR', 2: 'TRUCK'}
 
         for j in range(0, N):
 
             mvt = mvts[j, :]
-            text = '{}-{}-{}'.format(cat_dict[mvt[3]],str(mvt[2]), str(mvt[4]))
-            loc = mvt_dict[mvt[2]]
+            text = '{}-{}-{}'.format(cat_dict[mvt[3]],str(mvt[2]), str(mvt[4])) #Cat-MvtID-TrackerID; ex Car-3-25
+            loc = self.display_loc[mvt[2]]
             cv2.putText(img, text, loc, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 3, cv2.LINE_AA)
 
         return img
