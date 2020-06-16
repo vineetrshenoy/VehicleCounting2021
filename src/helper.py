@@ -52,8 +52,27 @@ class Helper():
 
         return mvt_dict
 
+    @staticmethod
+    def load_display_locations(filename):
+
+        with open(filename, 'rb') as f:
+            coor = f.readlines()
+
+        N = len(coor)
+
+        mvt_dict = {}
+
+        for i in range(0, N):
+            
+            coor_list = coor[i].decode('utf-8').rstrip()
+            coor_list = coor_list.split(',')
+
+            mvt_dict[i + 1] = (int(coor_list[0]), int(coor_list[1]))
+
+        
+        return mvt_dict
 
 if __name__ == '__main__':
 
     #Helper.get_roi('2,228,1916,300,1916,1076,2,1074')
-    Helper.load_bezier_curve('/vulcan/scratch/vshenoy/vehicle_counting/src/bezier_curves/cam_10.txt')
+    Helper.load_display_locations('/vulcan/scratch/vshenoy/vehicle_counting/src/display_loc/cam_10.txt')
