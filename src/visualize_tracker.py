@@ -12,8 +12,8 @@ config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
 ##
-# Workflow for the tracker object
-# @returns 
+# Workflow for the Visualizing Tracking
+# 
 #
 class VisualizeTracker():
 
@@ -28,7 +28,7 @@ class VisualizeTracker():
         frame_dim = (int(self.default['width']), int(self.default['height']))
         self.out_video = cv2.VideoWriter(video_name, self.fourcc, int(self.default['fps']), frame_dim) 
         
-        print()
+        
 
     ##
     # Loads the tracker files needed for visualization

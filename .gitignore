@@ -2,6 +2,5 @@ __pycache__/
 pytoch/
 logs/
 pytorch/
-pytorch.def
 slurm_scripts/
 src/vc_outputs/

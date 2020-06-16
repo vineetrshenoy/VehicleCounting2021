@@ -18,7 +18,7 @@ class Tracker():
 
     ##
     # Initializes the Tracker object
-    # @param cam_ident Camera identifier, by video according to AICITY2020 challenge
+    # 
     #
     def __init__(self):
         self.config = config['TRACKING']
@@ -106,7 +106,7 @@ class Tracker():
                 pickle.dump(trackBox, open(trackName, "wb"))
                 pickle.dump(frameBox, open(frameName, "wb"))
             
-            #return frameBox, trackBox
+            
 
 
 
