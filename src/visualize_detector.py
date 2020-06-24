@@ -32,7 +32,7 @@ class VisualizeDetector():
         
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
-        frame_dim = (int(self.default['frame_width']), int(self.default['frame_height']))
+        frame_dim = (int(self.default['width']), int(self.default['height']))
         self.out_video = cv2.VideoWriter(video_name, self.fourcc, int(self.default['fps']), frame_dim) #TODO: CAN NOT HARDCODE
         
 
@@ -65,7 +65,7 @@ class VisualizeDetector():
     #
     def run_visualizations(self):
 
-        with open(os.path.join(self.out_dir, self.cam_ident + '.pkl'), 'rb') as f:
+        with open(os.path.join('/vulcan/scratch/vshenoy/vehicle_counting/src/vc_outputs/aicity/detection_output/cam_1/cam_1_saumya.pkl'), 'rb') as f:
             detections = pickle.load(f)
 
         images = os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)) #gets the images
