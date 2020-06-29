@@ -5,7 +5,7 @@ import configparser
 import cv2
 import pickle
 from tqdm import tqdm
-
+import numpy as np
 logger = app_logger.get_logger('detector_visualization')
 
 config = configparser.ConfigParser()
@@ -46,15 +46,22 @@ class VisualizeDetector():
     #
     def write_video_frame(self, img, detections, file_name):
         
-        for vehicle in detections:
+        cat_dict = {3: 'Car', 6: 'Bus', 8: 'Truck'}
+        
+        for category in [3, 6, 8]:
+            
+            vehicle = list(filter(lambda x: x[5] == category, detections))
 
             for bbox in vehicle:
 
                 top_left = (int(bbox[0]), int(bbox[1]))
                 bottom_right = (int(bbox[2]), int(bbox[3]))
                 cv2.rectangle(img, top_left, bottom_right, (0, 0, 255), 2)
-                cv2.imwrite(file_name, img)
 
+                text = '{}-{}'.format(cat_dict[category], np.around(bbox[4], 3))
+                cv2.putText(img, text, top_left, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1, cv2.LINE_AA)
+
+                cv2.imwrite(file_name, img)
 
         self.out_video.write(img)
         return img
@@ -65,7 +72,7 @@ class VisualizeDetector():
     #
     def run_visualizations(self):
 
-        with open(os.path.join('/vulcan/scratch/vshenoy/vehicle_counting/src/vc_outputs/aicity/detection_output/cam_1/cam_1_saumya.pkl'), 'rb') as f:
+        with open(os.path.join(self.out_dir, 'cam_1.pkl'), 'rb') as f:
             detections = pickle.load(f)
 
         images = os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)) #gets the images
