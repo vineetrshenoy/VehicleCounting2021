@@ -1,0 +1,20 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/tensorflow:20.03-tf1-py3
+Stage: build
+
+%files
+    requirements.txt
+
+
+%post
+    
+    /usr/local/bin/pip install -r requirements.txt
+    /usr/local/bin/pip install opencv-python
+    /usr/bin/apt update
+    /usr/bin/apt install -y libsm6 libxext6
+    /usr/bin/apt-get install -y libsm6 libxrender1 libfontconfig1
+
+
+
+%help
+    This is a demo container for tensorflow
