@@ -116,10 +116,11 @@ class DetectDetectron:
             y1 = box[1].item()
             x2 = box[2].item()
             y2 = box[3].item()
-            
-            tup = (x1, y1, x2, y2, scores[i].item())
-            
             cat = classes[i].item() #category
+            
+            tup = (x1, y1, x2, y2, scores[i].item(), cat + 1)
+            
+            
             bbPath = mplPath.Path(self.roi) #gets the ROI coordinates
 
             #if contains point, add to list of detections
@@ -139,7 +140,7 @@ class DetectDetectron:
         car_detections = self.perform_nms(car_detections)
         bus_detections = self.perform_nms(bus_detections)
         truck_detections = self.perform_nms(truck_detections)
-        detections = [car_detections, bus_detections, truck_detections]
+        detections = car_detections + bus_detections + truck_detections
         return detections
 
     ##
@@ -173,18 +174,20 @@ class DetectDetectron:
         
         
         cv2.polylines(img, np.int32([self.roi]), 1, (0, 255, 0), 1, cv2.LINE_AA)
-        cat_dict = {1: 'Car', 2: 'Bus', 3: 'Truck'}
+        cat_dict = {3: 'Car', 6: 'Bus', 8: 'Truck'}
 
-        i = 0
-        for vehicle in detections:
-            i = i + 1
+        
+        for category in [3, 6, 8]:
+            
+            vehicle = list(filter(lambda x: x[5] == category, detections))
+
             for bbox in vehicle:
 
                 top_left = (int(bbox[0]), int(bbox[1]))
                 bottom_right = (int(bbox[2]), int(bbox[3]))
                 cv2.rectangle(img, top_left, bottom_right, (0, 0, 255), 2)
 
-                text = '{}-{}'.format(cat_dict[i], np.around(bbox[4], 3))
+                text = '{}-{}'.format(cat_dict[category], np.around(bbox[4], 3))
                 cv2.putText(img, text, top_left, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1, cv2.LINE_AA)
                 cv2.imwrite(file_name, img)
 

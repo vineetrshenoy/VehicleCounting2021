@@ -92,9 +92,10 @@ class Tracker():
     def run_tracker(self, detections): 
 
         
-        for classID, className in zip([0, 1, 2], ['Car', 'Bus', 'Truck']):
+        for classID, className in zip([3, 6, 8], ['Car', 'Bus', 'Truck']):
 
-            vehicle_detections = [detections[frame][classID] for frame in sorted(detections.keys())]
+            vehicle_detections = [list(filter(lambda x: x[5] == classID, detections[frame])) for frame in sorted(detections.keys())]
+            #vehicle_detections = [detections[frame][classID] for frame in sorted(detections.keys())]
             frameBox, trackBox = self.per_class_tracker(vehicle_detections)
 
             # Save frameBox and trackBox as a pickle file and return 
