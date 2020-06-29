@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import configparser
 import time
+from tqdm import tqdm
 
 import app_logger
 from helper import Helper

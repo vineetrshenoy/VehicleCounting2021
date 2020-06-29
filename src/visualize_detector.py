@@ -6,6 +6,7 @@ import cv2
 import pickle
 from tqdm import tqdm
 import numpy as np
+from tqdm import tqdm
 logger = app_logger.get_logger('detector_visualization')
 
 config = configparser.ConfigParser()
