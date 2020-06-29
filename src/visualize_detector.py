@@ -73,7 +73,7 @@ class VisualizeDetector():
     #
     def run_visualizations(self):
 
-        with open(os.path.join(self.out_dir, 'cam_1.pkl'), 'rb') as f:
+        with open(os.path.join(self.out_dir, self.cam_ident + '.pkl'), 'rb') as f:
             detections = pickle.load(f)
 
         images = os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)) #gets the images
