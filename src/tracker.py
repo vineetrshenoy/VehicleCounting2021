@@ -89,8 +89,11 @@ class Tracker():
     # Workflow for the tracker object
     # @param detections The Detections file from the previous step in pipeline 
     #
-    def run_tracker(self, detections): 
+    def run_tracker(self): 
 
+        detection_file = os.path.join(self.default['output_dir'], self.default['job_name'], 'detection_output', self.cam_ident, self.cam_ident + '.pkl')
+        with open(detection_file, 'rb') as f:
+            detections = pickle.load(f)
         
         for classID, className in zip([3, 6, 8], ['Car', 'Bus', 'Truck']):
 
@@ -113,12 +116,8 @@ class Tracker():
 
 if __name__=='__main__':
 
-    filepath = 'src/vc_outputs/aicity/detection_output/cam_1/cam_1.pkl'
-    #filepath2 = 'cam_10.pkl'
-    with open(filepath, 'rb') as f:
-        data = pickle.load(f)
-
+    
     tr = Tracker()
-    tr.run_tracker(data)
+    tr.run_tracker()
 
     

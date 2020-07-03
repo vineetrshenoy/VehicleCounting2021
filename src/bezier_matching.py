@@ -178,13 +178,17 @@ class BezierMatching:
 
         
         THRESHOLD = float(self.config['THRESHOLD'])
+        diffthresh = float(self.config['diff_threshold'])
         diff = np.sum(np.diff(t) < 0) / len(t)
         neg = np.sum(t < 0) / len(t)
         pos = np.sum(t > 1) / len(t)
         
         if (neg > THRESHOLD) or (pos > THRESHOLD):
-        #if (diff > THRESHOLD) or (neg > THRESHOLD) or (pos > THRESHOLD): #t is decreasing -- wrong direction
+        #if (diff > diff_threshold and len(t) < int(self.config['tracklength'])) or (neg > THRESHOLD) or (pos > THRESHOLD): 
             return -1 
+
+        if diff > diffthresh and len(t) < int(self.config['tracklength']):
+            return -1
         
         start_end = np.array([coor[:,0], coor[:, -1]]).T
         distance =  None
@@ -199,7 +203,7 @@ class BezierMatching:
             points = np.array([points[:, 0], points[:, -1]]).T
             distance = np.sqrt(np.sum(np.square(points - start_end), axis=0))
 
-        if np.sum(distance > 500) > 0:
+        if np.sum(distance > int(self.config['endpoint_distance'])) > 0:
             return -1
         
         return 0
@@ -212,7 +216,7 @@ class BezierMatching:
     #
     def project_on_movements(self, coor):
 
-        if coor.shape[1] < int(self.config['LENGTH']):
+        if coor.shape[1] < int(self.config['MIN_LENGTH']):
             return -1
 
         THRESHOLD = float(self.config['THRESHOLD'])
@@ -293,7 +297,7 @@ class BezierMatching:
         files = glob.glob(os.path.join(tracker_dir, 'Track*'))
 
         for tracker_file in files:
-            #tracker_file = 'src/vc_outputs/aicity/tracker_output/cam_10/Track_Car_cam_10.pkl'
+            #tracker_file = 'src/vc_outputs/aicity/tracker_output/cam_5_dawn/Track_Car_cam_5_dawn.pkl'
             with open(tracker_file, 'rb') as f:              
                 
                 tracker_results = pickle.load(f)

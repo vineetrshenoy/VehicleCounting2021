@@ -25,7 +25,7 @@ def main() -> None:
         VisualizeDetector('cam_1', 10, (1280, 960)).run_visualizations()
     '''
 
-    Tracker().run_tracker(detection_dict)
+    Tracker().run_tracker()
     VisualizeTracker().run_visualizations()
     BezierMatching().workflow()
     VisualizeCounting().workflow()
