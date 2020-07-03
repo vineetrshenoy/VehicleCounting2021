@@ -52,7 +52,7 @@ class BezierMatching:
        
         dot_product = np.sum(point_curve_diff*endpoint_diff, axis=1)       
         
-        #assert np.sum(dot_product) < 1e-5 #assert orthogonal property is satisfied
+        assert np.sum(dot_product) < 1e-5 #assert orthogonal property is satisfied
         
         return np.linalg.norm(point_curve_diff)
 
@@ -83,7 +83,7 @@ class BezierMatching:
 
         dot_product = np.sum(dt*diff, axis=1)      
         
-        #assert np.sum(dot_product) < 1e-5 #assert orthogonal property is satisfied
+        assert np.sum(dot_product) < 1e-5 #assert orthogonal property is satisfied
         
         return np.linalg.norm(diff)
 
@@ -168,6 +168,46 @@ class BezierMatching:
         
         return t
 
+    
+    ##
+    # Post Processes the t vector
+    # @param t The resulting t vector
+    # @returns 
+    #
+    def post_process_t(self, t, coor, mvt):
+
+        
+        THRESHOLD = float(self.config['THRESHOLD'])
+        diffthresh = float(self.config['diff_threshold'])
+        diff = np.sum(np.diff(t) < 0) / len(t)
+        neg = np.sum(t < 0) / len(t)
+        pos = np.sum(t > 1) / len(t)
+        
+        if (neg > THRESHOLD) or (pos > THRESHOLD):
+        #if (diff > diff_threshold and len(t) < int(self.config['tracklength'])) or (neg > THRESHOLD) or (pos > THRESHOLD): 
+            return -1 
+
+        if diff > diffthresh and len(t) < int(self.config['tracklength']):
+            return -1
+        
+        start_end = np.array([coor[:,0], coor[:, -1]]).T
+        distance =  None
+        if np.shape(self.bezier_curves[mvt])[1] == 2:#linear movement
+            
+            points = self.bezier_curves[mvt]            
+            distance = np.sqrt(np.sum(np.square(points - start_end), axis=0))
+
+        else:
+
+            points = self.bezier_curves[mvt]
+            points = np.array([points[:, 0], points[:, -1]]).T
+            distance = np.sqrt(np.sum(np.square(points - start_end), axis=0))
+
+        if np.sum(distance > int(self.config['endpoint_distance'])) > 0:
+            return -1
+        
+        return 0
+
 
     ##
     # Compares empirical coordinates to each movement
@@ -176,16 +216,20 @@ class BezierMatching:
     #
     def project_on_movements(self, coor):
 
+        if coor.shape[1] < int(self.config['MIN_LENGTH']):
+            return -1
+
         THRESHOLD = float(self.config['THRESHOLD'])
         mvt_scores = np.zeros(len(self.bezier_curves.keys()))
         for mvt in self.bezier_curves.keys():
 
             if np.shape(self.bezier_curves[mvt])[1] == 2: #linear movement
                 t = self.get_linear_t(coor, mvt) 
-                diff = np.sum(np.diff(t) < 0) / len(t)
-                neg = np.sum(t < 0) / len(t)
-                pos = np.sum(t > 1) / len(t)
-                if (diff > THRESHOLD) or (neg > THRESHOLD) or (pos > THRESHOLD): #t is decreasing -- wrong direction
+                indicator = self.post_process_t(t, coor, mvt)
+                #diff = np.sum(np.diff(t) < 0) / len(t)
+                #neg = np.sum(t < 0) / len(t)
+                #pos = np.sum(t > 1) / len(t)
+                if indicator == -1: #t is decreasing -- wrong direction
                     mvt_scores[mvt - 1] = np.iinfo(np.int32).max
                 else:
                     score = self.get_linear_score(t, mvt, coor)
@@ -193,10 +237,11 @@ class BezierMatching:
             
             else: #quadratic movement
                 t = self.get_quadratic_t(coor, mvt)
-                diff = np.sum(np.diff(t) < 0) / len(t)
-                neg = np.sum(t < 0) / len(t)
-                pos = np.sum(t > 1) / len(t)
-                if (diff > THRESHOLD) or (neg > THRESHOLD) or (pos > THRESHOLD): #t is decreasing -- wrong direction
+                indicator = self.post_process_t(t, coor, mvt)
+                #diff = np.sum(np.diff(t) < 0) / len(t)
+                #neg = np.sum(t < 0) / len(t)
+                #pos = np.sum(t > 1) / len(t)
+                if indicator == -1: #t is decreasing -- wrong direction
                     mvt_scores[mvt - 1] = np.iinfo(np.int32).max
                 else:
                     score = self.get_quadratic_score(t, mvt, coor)
@@ -252,7 +297,7 @@ class BezierMatching:
         files = glob.glob(os.path.join(tracker_dir, 'Track*'))
 
         for tracker_file in files:
-
+            #tracker_file = 'src/vc_outputs/aicity/tracker_output/cam_5_dawn/Track_Car_cam_5_dawn.pkl'
             with open(tracker_file, 'rb') as f:              
                 
                 tracker_results = pickle.load(f)
