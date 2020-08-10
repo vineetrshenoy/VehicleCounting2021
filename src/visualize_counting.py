@@ -86,12 +86,13 @@ class VisualizeCounting():
         
         
         results = self.read_counting_file()
-        imgLoc = 'src/vc_outputs/aicity/tracker_output'
+        imgLoc = os.path.join(self.default['output_dir'], self.default['job_name'],'tracker_output')
+        #imgLoc = 'src/vc_outputs/aicity/tracker_output'
         images = sorted(glob.glob(os.path.join(imgLoc, self.cam_ident, '*.jpg')))
         N = len(images)
 
         
-        imgLoc = 'src/vc_outputs/aicity/tracker_output'
+        #imgLoc = 'src/vc_outputs/aicity/tracker_output'
         for i in tqdm(range(0, N)):
 
             imageName = os.path.join(imgLoc, self.cam_ident, os.path.basename(images[i])) # image i+1.jpg
