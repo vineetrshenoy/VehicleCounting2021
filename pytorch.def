@@ -7,8 +7,10 @@ Stage: build
     
     /opt/conda/bin/pip install cython
     /opt/conda/bin/pip install pyperformance
+    /usr/local/cuda/bin/nvcc --version
+    /opt/conda/bin/python -c 'import torch; from torch.utils.cpp_extension import CUDA_HOME; print(torch.cuda.is_available(), CUDA_HOME)'
     /opt/conda/bin/pip install -U 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
-    /opt/conda/bin/python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
+    #/opt/conda/bin/python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     /opt/conda/bin/conda install -c conda-forge filterpy
     /opt/conda/bin/conda install -c conda-forge tqdm
 %help

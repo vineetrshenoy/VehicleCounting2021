@@ -10,6 +10,9 @@ from helper import Helper
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
+basic_config = configparser.ConfigParser()
+basic_config.read('config/basic.ini')
+
 class VisualizeCounting():
 
     def __init__(self):

@@ -18,8 +18,8 @@ config.read(sys.argv[1])
 
 def main() -> None:
     
-    #dt = DetectDetectron()
-    #detection_dict = dt.run_predictions()
+    dt = DetectDetectron()
+    detection_dict = dt.run_predictions()
 
 
     Tracker().run_tracker()
