@@ -11,6 +11,9 @@ logger = app_logger.get_logger('tracker_visualization')
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
+basic_config = configparser.ConfigParser()
+basic_config.read('config/basic.ini')
+
 ##
 # Workflow for the Visualizing Tracking
 # 

@@ -10,7 +10,8 @@ from helper import Helper
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
-
+basic_config = configparser.ConfigParser()
+basic_config.read('config/basic.ini')
 
 
 
@@ -297,7 +298,7 @@ class BezierMatching:
         files = glob.glob(os.path.join(tracker_dir, 'Track*'))
 
         for tracker_file in files:
-            #tracker_file = 'src/vc_outputs/aicity/tracker_output/cam_5_dawn/Track_Car_cam_5_dawn.pkl'
+            #tracker_file = 'src/vc_outputs/rcnn/tracker_output/cam_15/Track_Car_cam_15.pkl'
             with open(tracker_file, 'rb') as f:              
                 
                 tracker_results = pickle.load(f)

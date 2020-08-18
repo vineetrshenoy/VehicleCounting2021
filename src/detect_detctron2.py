@@ -26,6 +26,8 @@ logger = app_logger.get_logger('detect_detectron')
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
+basic_config = configparser.ConfigParser()
+basic_config.read('config/basic.ini')
 
 
 ##
@@ -34,7 +36,7 @@ config.read(sys.argv[1])
 class DetectDetectron:
 
     def __init__(self):
-        
+        self.basic = basic_config
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
         predictor, cfg = self.load_model()
@@ -59,9 +61,9 @@ class DetectDetectron:
     def load_model(self):
         
         cfg = get_cfg()
-        cfg.merge_from_file(model_zoo.get_config_file(self.config['config_file']))
-        cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7 # set threshold for this model
-        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(self.config['config_file'])
+        cfg.merge_from_file(model_zoo.get_config_file(self.basic['DETECTION']['config_file']))
+        #cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7 # set threshold for this model
+        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(self.basic['DETECTION']['config_file'])
         cfg.MODEL.DEVICE = 'cuda:0'
         predictor = DefaultPredictor(cfg)
 

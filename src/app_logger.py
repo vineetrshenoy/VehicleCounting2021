@@ -10,7 +10,7 @@ config.read('config/basic.ini')
 
 
 # create file handler which logs even debug messages
-log_name = os.path.join(config['HOME']['HOME'], 'logs', config['DEFAULT']['log_filename'])
+log_name = os.path.join('logs', config['DEFAULT']['log_filename'])
 Path(log_name).touch(exist_ok=True)
 fh = logging.handlers.TimedRotatingFileHandler(log_name, when='H', backupCount=10)
 fh.setLevel(logging.DEBUG)

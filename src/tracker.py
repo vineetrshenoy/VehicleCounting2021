@@ -13,6 +13,8 @@ logger = app_logger.get_logger('tracker')
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
+basic_config = configparser.ConfigParser()
+basic_config.read('config/basic.ini')
 
 class Tracker():
 
