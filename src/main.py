@@ -7,6 +7,7 @@ from visualize_detector import VisualizeDetector
 from visualize_tracker import VisualizeTracker
 from bezier_matching import BezierMatching
 from visualize_counting import VisualizeCounting
+from deepsort_tracker import DeepsortTracker
 #from effdet import EfficientDet
 import pickle
 logger = app_logger.get_logger('main')
@@ -21,8 +22,8 @@ def main() -> None:
     dt = DetectDetectron()
     detection_dict = dt.run_predictions()
 
-
-    Tracker().run_tracker()
+    DeepsortTracker().run_deepsort()
+    #Tracker().run_tracker()
     VisualizeTracker().run_visualizations()
     BezierMatching().workflow()
     VisualizeCounting().workflow()

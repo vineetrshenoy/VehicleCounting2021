@@ -29,10 +29,11 @@ basic_config.read('config/basic.ini')
 class VisualizeDetector():
 
     def __init__(self):
+        self.basic = basic_config['DEFAULT']
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
         self.cam_ident = self.default['cam_name']
-        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'detection_output', self.cam_ident)
+        self.out_dir = os.path.join(self.default['output_dir'], self.basic['job_name'], 'detection_output', self.cam_ident)
         
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
