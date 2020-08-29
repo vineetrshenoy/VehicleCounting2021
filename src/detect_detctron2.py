@@ -69,9 +69,9 @@ class DetectDetectron:
     def load_model(self):
         
         cfg = get_cfg()
-        cfg.merge_from_file(model_zoo.get_config_file(self.basic['DETECTION']['config_file']))
+        cfg.merge_from_file(model_zoo.get_config_file(basic_config['DETECTION']['config_file']))
         #cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7 # set threshold for this model
-        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(self.basic['DETECTION']['config_file'])
+        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(basic_config['DETECTION']['config_file'])
         cfg.MODEL.DEVICE = 'cuda:0'
         predictor = DefaultPredictor(cfg)
 
@@ -217,7 +217,7 @@ class DetectDetectron:
         frame_times = np.zeros((len(files),))
         start_process_time = time.process_time()
 
-        dst = DeepsortTracker()
+        #dst = DeepsortTracker()
         for i in tqdm(range(0, len(files), int(self.config['step']))): #for every camera frame
 
             img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, files[i])) #read the frame
