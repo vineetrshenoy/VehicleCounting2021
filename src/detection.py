@@ -36,6 +36,23 @@ config.read(sys.argv[1])
 basic_config = configparser.ConfigParser()
 basic_config.read('config/basic.ini')
 
+class VideoPipe(Pipeline):
+    
+    def __init__(self, batch_size, num_threads, device_id, data, shuffle, sequence_length=1):       
+        super(VideoPipe, self).__init__(batch_size, num_threads, device_id, seed=16)        
+        self.input = ops.VideoReader(device="gpu", filenames=data, sequence_length=sequence_length,
+                                     shard_id=0, num_shards=1,
+                                     random_shuffle=shuffle, initial_fill=10)
+        self.colorspace = ops.ColorSpaceConversion(
+            image_type=DALIImageType.RGB, 
+            output_type=DALIImageType.BGR,
+            device='gpu'
+        )
+            
+        self.resize = ops.Resize(resize_shorter=800, max_size=1333, device="gpu")
+        self.transpose = ops.Transpose(perm=[0, 3, 1, 2], device='gpu')
+
+
 
 ##
 #   DetectDetectron class for performing detections using detectron2
@@ -182,78 +199,14 @@ class DetectDali:
     #
     def run_predictions(self):
 
-        detection_dict = {}
-        feature_dict = {}
-        files = sorted(
-            os.listdir(
-                os.path.join(
-                    self.default['data_dir'],
-                    self.cam_ident)))
+        pipe = VideoPipe(batch_size=args['batch_size'], num_threads=args['threads'], device_id=0, data=video, sequence_length=args['sequence'], shuffle=False)
+        pipe.build()
+        dali_iter = DALIGenericIterator(pipe, ['data'], pipe.epoch_size("Reader"), fill_last_batch=False)
 
-        frame_times = np.zeros((len(files),))
-        start_process_time = time.process_time()
-
-        #dst = DeepsortTracker()
-        for i in tqdm(range(0, len(files), int(
-                self.config['step']))):  # for every camera frame
-
-            img = cv2.imread(
-                os.path.join(
-                    self.default['data_dir'],
-                    self.cam_ident,
-                    files[i]))  # read the frame
-
-            start_frame_time = time.process_time()
-            outputs = self.predictor(img)  # generate detections on image
-            end_frame_time = time.process_time()
-
-            frame_times[i] = end_frame_time - start_frame_time
-
-            detections = self.process_outputs(outputs)
-            #features = None
-            #features = self.feature_extractor.workflow(img, detections)
-
-            frame = self.get_frame_number(
-                os.path.join(
-                    self.default['data_dir'],
-                    self.cam_ident,
-                    files[i]))
-
-            if int(self.basic['visualize']) == 1:
-
-                file_name = os.path.join(self.out_dir, files[i])
-                self.visualize_detections(img, detections, file_name)
-
-            detection_dict[frame] = detections
-            #feature_dict[frame] = features
-
-        end_process_time = time.process_time()
-
-        logger.info(
-            self.default['job_name'] +
-            ' || ' +
-            self.cam_ident +
-            ' -----------------')
-        logger.info('Mean: ' + str(np.mean(frame_times)))
-        logger.info('Median: ' + str(np.median(frame_times)))
-        logger.info('std: ' + str(np.std(frame_times)))
-        logger.info('max: ' + str(np.max(frame_times)))
-        logger.info('min: ' + str(np.min(frame_times)))
-        logger.info('Total: ' + str(end_process_time - start_process_time))
-
-        #np.save(self.default['job_name'] +'_' + self.cam_ident + '.npy', frame_times)
-
-        if (int(self.config['visualize'])) == 1:
-            self.out_video.release()  # release the video
-
-        with open(os.path.join(self.out_dir, self.cam_ident + '.pkl'), 'wb') as handle:
-            pickle.dump(detection_dict, handle)
-
-        with open(os.path.join(self.out_dir, self.cam_ident + '_features.pkl'), 'wb') as handle:
-            pickle.dump(feature_dict, handle)
-        return detection_dict
+        
 
 
 if __name__ == '__main__':
 
     dd = DetectDali()
+    print('hello world')
