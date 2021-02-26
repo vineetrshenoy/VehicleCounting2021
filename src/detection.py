@@ -52,7 +52,14 @@ class VideoPipe(Pipeline):
         self.resize = ops.Resize(resize_shorter=800, max_size=1333, device="gpu")
         self.transpose = ops.Transpose(perm=[0, 3, 1, 2], device='gpu')
 
-
+    
+    def define_graph(self):
+        
+        output = self.input(name="Reader")
+        #output = self.colorspace(output)
+        output = self.resize(output)
+        output = self.transpose(output)
+        return output
 
 ##
 #   DetectDetectron class for performing detections using detectron2
@@ -199,14 +206,21 @@ class DetectDali:
     #
     def run_predictions(self):
 
-        pipe = VideoPipe(batch_size=args['batch_size'], num_threads=args['threads'], device_id=0, data=video, sequence_length=args['sequence'], shuffle=False)
+        video = os.path.join(self.basic['data_dir'], self.default['cam_name']) + '.mp4'
+
+        pipe = VideoPipe(batch_size=1, num_threads=1, device_id=0, data=video, sequence_length=1, shuffle=False)
         pipe.build()
         dali_iter = DALIGenericIterator(pipe, ['data'], pipe.epoch_size("Reader"), fill_last_batch=False)
 
+
+        for i, data in tqdm(enumerate(dali_iter)):
+            img = data[0]['data'][0, 0, :, :, :]
+            img_pred = img[[2, 1, 0], :]
         
 
 
 if __name__ == '__main__':
 
     dd = DetectDali()
+    dd.run_predictions()
     print('hello world')
