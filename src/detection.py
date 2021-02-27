@@ -12,6 +12,8 @@ from nvidia.dali.types import DALIImageType
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.patches as patches
+import matplotlib.path as mplPath
+from helper import Helper
 from PIL import Image
 import cv2
 import numpy as np
@@ -27,6 +29,7 @@ import detectron2.data.transforms as T
 from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
+from detectron2.layers import nms
 '''
 logger = app_logger.get_logger('detect_detectron')
 '''
@@ -82,7 +85,7 @@ class DetectDali:
             self.cam_ident)
         
         os.makedirs(self.out_dir, exist_ok=True)
-        #self.roi = Helper.get_roi(self.default['roi'])
+        self.roi = Helper.get_roi(self.default['roi'])
 
 
     ##
@@ -212,11 +215,26 @@ class DetectDali:
         pipe.build()
         dali_iter = DALIGenericIterator(pipe, ['data'], pipe.epoch_size("Reader"), fill_last_batch=False)
 
-
-        for i, data in tqdm(enumerate(dali_iter)):
+        detection_dict = {}
+        for i, data in tqdm.tqdm(enumerate(dali_iter)):
             img = data[0]['data'][0, 0, :, :, :]
-            img_pred = img[[2, 1, 0], :]
+            img_pred = img[[2, 1, 0], :]    
+
+            height = int(self.default['height'])
+            width = int(self.default['width'])
+            inputs = {'image': img_pred, 'height':height, 'width': width}
+            with torch.no_grad():
+                outputs = self.model([inputs])[0]
+
+            detections = self.process_outputs(outputs)
+
+            detection_dict[i+1] = detections
+
+
+        with open(os.path.join(self.out_dir, self.cam_ident + '.pkl' ), 'wb') as handle:
+            pickle.dump(detection_dict, handle)
         
+        x = 5
 
 
 if __name__ == '__main__':
