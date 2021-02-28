@@ -89,4 +89,4 @@ class Helper():
 if __name__ == '__main__':
 
     #Helper.get_roi('2,228,1916,300,1916,1076,2,1074')
-    Helper.load_display_locations('/vulcan/scratch/vshenoy/vehicle_counting/src/display_loc/cam_10.txt')
+    Helper.load_bezier_curve('src/bezier_curves/cam_6_snow.txt')

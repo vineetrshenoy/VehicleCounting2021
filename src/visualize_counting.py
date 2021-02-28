@@ -10,12 +10,16 @@ from helper import Helper
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
+basic_config = configparser.ConfigParser()
+basic_config.read('config/basic.ini')
+
 class VisualizeCounting():
 
     def __init__(self):
+        self.basic = basic_config['DEFAULT']
         self.default = config['DEFAULT']
         self.cam_ident = self.default['cam_name']
-        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'counting_output', self.cam_ident) #set output directory
+        self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'counting_output', self.cam_ident) #set output directory
         self.roi = Helper.get_roi(self.default['roi'])
 
         self.display_loc = Helper.load_display_locations(os.path.join('src/display_loc', self.cam_ident + '.txt'))
@@ -86,12 +90,13 @@ class VisualizeCounting():
         
         
         results = self.read_counting_file()
-        imgLoc = 'src/vc_outputs/aicity/tracker_output'
+        imgLoc = os.path.join(self.basic['output_dir'], self.basic['job_name'],'tracker_output')
+        #imgLoc = 'src/vc_outputs/aicity/tracker_output'
         images = sorted(glob.glob(os.path.join(imgLoc, self.cam_ident, '*.jpg')))
         N = len(images)
 
         
-        imgLoc = 'src/vc_outputs/aicity/tracker_output'
+        #imgLoc = 'src/vc_outputs/aicity/tracker_output'
         for i in tqdm(range(0, N)):
 
             imageName = os.path.join(imgLoc, self.cam_ident, os.path.basename(images[i])) # image i+1.jpg

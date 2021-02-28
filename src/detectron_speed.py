@@ -1,6 +1,5 @@
 import sys
 import os
-sys.path.append(os.getcwd())
 import pickle
 import numpy as np
 import cv2
@@ -8,7 +7,7 @@ import configparser
 import torch
 import time
 torch.cuda.current_device()
-import app_logger
+#import app_logger
 from helper import Helper
 
 from detectron2.modeling import build_model
@@ -17,21 +16,13 @@ from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 from detectron2.structures.boxes import BoxMode
 from detectron2.layers import nms
-from deep_sort.siamese_net import *
-from deepsort_tracker import DeepsortTracker
-from feature_extractor import SaverExtractor
 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
 
-logger = app_logger.get_logger('detect_detectron')
+#logger = app_logger.get_logger('detect_detectron')
 
-config = configparser.ConfigParser()
-config.read(sys.argv[1])
-
-basic_config = configparser.ConfigParser()
-basic_config.read('config/basic.ini')
 
 
 
@@ -40,21 +31,18 @@ basic_config.read('config/basic.ini')
 #
 class DetectDetectron:
 
-    def __init__(self):
-        self.basic = basic_config['DEFAULT']
+    def __init__(self, config):
+        
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
         predictor, cfg = self.load_model()
         self.predictor = predictor
         self.cfg = cfg
         self.cam_ident = self.default['cam_name']
-        self.out_dir = os.path.join(self.default['output_dir'], self.basic['job_name'], 'detection_output', self.cam_ident)
+        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'detection_output', self.cam_ident)
         os.makedirs(self.out_dir, exist_ok=True)
         self.roi = Helper.get_roi(self.default['roi'])
         
-        #Tracker Feature extractor
-        self.feature_extractor = SaverExtractor()
-
         ##Video visualization
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
@@ -69,9 +57,9 @@ class DetectDetectron:
     def load_model(self):
         
         cfg = get_cfg()
-        cfg.merge_from_file(model_zoo.get_config_file(basic_config['DETECTION']['config_file']))
-        #cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7 # set threshold for this model
-        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(basic_config['DETECTION']['config_file'])
+        cfg.merge_from_file(model_zoo.get_config_file(self.config['config_file']))
+        cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7 # set threshold for this model
+        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(self.config['config_file'])
         cfg.MODEL.DEVICE = 'cuda:0'
         predictor = DefaultPredictor(cfg)
 
@@ -211,13 +199,10 @@ class DetectDetectron:
     def run_predictions(self):
 
         detection_dict = {}
-        feature_dict = {}
         files = sorted(os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)))
         
         frame_times = np.zeros((len(files),))
         start_process_time = time.process_time()
-
-        #dst = DeepsortTracker()
         for i in tqdm(range(0, len(files), int(self.config['step']))): #for every camera frame
 
             img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, files[i])) #read the frame
@@ -229,27 +214,24 @@ class DetectDetectron:
             frame_times[i] = end_frame_time - start_frame_time
 
             detections = self.process_outputs(outputs)
-            features = self.feature_extractor.workflow(img, detections)
-
             frame = self.get_frame_number(os.path.join(self.default['data_dir'], self.cam_ident, files[i]))
             
-            if int(self.basic['visualize']) == 1:
+            if int(self.config['visualize']) == 1:
 
                 file_name = os.path.join(self.out_dir, files[i])
                 self.visualize_detections(img, detections, file_name)
                 
             detection_dict[frame] = detections
-            feature_dict[frame] = features
         
         end_process_time = time.process_time()
 
-        logger.info(self.default['job_name'] + ' || ' + self.cam_ident + ' -----------------')
-        logger.info('Mean: ' + str(np.mean(frame_times)))
-        logger.info('Median: ' + str(np.median(frame_times)))
-        logger.info('std: ' + str(np.std(frame_times)))
-        logger.info('max: ' + str(np.max(frame_times)))
-        logger.info('min: ' + str(np.min(frame_times)))
-        logger.info('Total: ' + str(end_process_time - start_process_time))
+        #logger.info(self.default['job_name'] + ' || ' + self.cam_ident + ' -----------------')
+        #logger.info('Mean: ' + str(np.mean(frame_times)))
+        #logger.info('Median: ' + str(np.median(frame_times)))
+        #logger.info('std: ' + str(np.std(frame_times)))
+        #logger.info('max: ' + str(np.max(frame_times)))
+        #logger.info('min: ' + str(np.min(frame_times)))
+        #logger.info('Total: ' + str(end_process_time - start_process_time))
 
         #np.save(self.default['job_name'] +'_' + self.cam_ident + '.npy', frame_times) 
         
@@ -259,14 +241,19 @@ class DetectDetectron:
         with open(os.path.join(self.out_dir, self.cam_ident + '.pkl' ), 'wb') as handle:
             pickle.dump(detection_dict, handle)           
 
-        with open(os.path.join(self.out_dir, self.cam_ident + '_features.pkl' ), 'wb') as handle:
-            pickle.dump(feature_dict, handle)
         return detection_dict
 
 if __name__ == '__main__':
 
-    
-    dt = DetectDetectron()
-    dt.run_predictions()
-    #logger.info()
-    print('Hello World')
+
+    cameras = sorted(os.listdir('/mnt/dataset_A_frames'))
+
+    for cam in cameras:
+        
+        config_file = os.path.join('config', cam + '.ini')
+        print('###### PROCESSSING ' + cam + ' ########')
+        config = configparser.ConfigParser()
+        config.read(config_file)
+
+        dt = DetectDetectron(config)
+        dt.run_predictions()

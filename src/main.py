@@ -7,7 +7,8 @@ from visualize_detector import VisualizeDetector
 from visualize_tracker import VisualizeTracker
 from bezier_matching import BezierMatching
 from visualize_counting import VisualizeCounting
-from effdet import EfficientDet
+#from deepsort_tracker import DeepsortTracker
+from detection import DetectDali
 import pickle
 logger = app_logger.get_logger('main')
 
@@ -18,8 +19,9 @@ config.read(sys.argv[1])
 
 def main() -> None:
     
-    dt = EfficientDet()
-    detection_dict_list = dt.generate_predictions()
+    dd = DetectDali()
+    dd.run_predictions()
+
  
 
     Tracker().run_tracker(detection_dict)

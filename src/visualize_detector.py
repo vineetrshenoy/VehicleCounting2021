@@ -7,10 +7,13 @@ import pickle
 from tqdm import tqdm
 import numpy as np
 from tqdm import tqdm
-logger = app_logger.get_logger('detector_visualization')
+#logger = app_logger.get_logger('detector_visualization')
 
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
+
+basic_config = configparser.ConfigParser()
+basic_config.read('config/basic.ini')
 
 '''
     1. Load detection file
@@ -26,10 +29,11 @@ config.read(sys.argv[1])
 class VisualizeDetector():
 
     def __init__(self):
+        self.basic = basic_config['DEFAULT']
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
         self.cam_ident = self.default['cam_name']
-        self.out_dir = os.path.join(self.default['output_dir'], self.default['job_name'], 'detection_output', self.cam_ident)
+        self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'detection_output', self.cam_ident)
         
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
@@ -72,16 +76,16 @@ class VisualizeDetector():
     # @returns framepkl, trackpkl
     #
     def run_visualizations(self):
-
+        data_dir = '/vulcanscratch/vshenoy/aicity_2020/dataset_A_frames'
         with open(os.path.join(self.out_dir, self.cam_ident + '.pkl'), 'rb') as f:
             detections = pickle.load(f)
 
-        images = os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)) #gets the images
+        images = os.listdir(os.path.join(data_dir, self.cam_ident)) #gets the images
         images = sorted(images)
         for i in tqdm(range(0, len(images), int(self.config['step']))):
             imgName = images[i]
             frameNum = int(imgName.replace(".jpg", ""))
-            img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, imgName)) #read the images
+            img = cv2.imread(os.path.join(data_dir, self.cam_ident, imgName)) #read the images
             img = self.write_video_frame(img, detections[frameNum], os.path.join(self.out_dir, imgName)) #write the images
             
 

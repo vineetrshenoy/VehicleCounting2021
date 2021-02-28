@@ -3,4 +3,6 @@ pytoch/
 logs/
 pytorch/
 slurm_scripts/
-src/vc_outputs/
+vc_outputs/
+*.sif
+src/display_loc/*.png
