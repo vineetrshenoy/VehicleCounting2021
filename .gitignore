@@ -4,3 +4,4 @@ logs/
 pytorch/
 slurm_scripts/
 vc_outputs/
+*.sif

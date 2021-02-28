@@ -202,6 +202,40 @@ class DetectDali:
         indices = indices.numpy().tolist()
         return [detections[i] for i in indices]
 
+    ##
+    #  Creates the pipeline to load images
+    #  @returns dali_iter An iterator for loading images
+    #
+    def build_dali_pipeline(self):
+
+
+        video = os.path.join(self.basic['data_dir'], self.default['cam_name']) + '.mp4'
+        bs = int(self.basic['batch_size'])
+        sl = int(self.basic['sequence_length'])
+
+        pipe = VideoPipe(batch_size=bs, num_threads=1, device_id=0, data=video, sequence_length=sl, shuffle=False)
+        pipe.build()
+        dali_iter = DALIGenericIterator(pipe, ['data'], pipe.epoch_size("Reader"), fill_last_batch=False)
+
+        return dali_iter
+
+    ##
+    #   Creates the input dictionary for the model
+    #   @param images The images from dali
+    #
+    def create_model_input(self, images):
+        
+        img_pred = images[:, [2, 1, 0], :]
+        height = int(self.default['height'])
+        width = int(self.default['width'])
+
+        N = images.shape[0]
+        input_list = []
+        for i in range(0, N):
+            inputs = {'image': img_pred[i, :], 'height':height, 'width': width}
+            input_list.append(inputs)
+
+        return input_list
     
     ##
     #   Runs the detection workflow
@@ -209,27 +243,24 @@ class DetectDali:
     #
     def run_predictions(self):
 
-        video = os.path.join(self.basic['data_dir'], self.default['cam_name']) + '.mp4'
-
-        pipe = VideoPipe(batch_size=1, num_threads=1, device_id=0, data=video, sequence_length=1, shuffle=False)
-        pipe.build()
-        dali_iter = DALIGenericIterator(pipe, ['data'], pipe.epoch_size("Reader"), fill_last_batch=False)
+        dali_iter = self.build_dali_pipeline()
 
         detection_dict = {}
-        for i, data in tqdm.tqdm(enumerate(dali_iter)):
-            img = data[0]['data'][0, 0, :, :, :]
-            img_pred = img[[2, 1, 0], :]    
+        for i, data in tqdm(enumerate(dali_iter)):
+            img = data[0]['data'][:, 0, :, :, :]
+            inputs = self.create_model_input(img)
 
-            height = int(self.default['height'])
-            width = int(self.default['width'])
-            inputs = {'image': img_pred, 'height':height, 'width': width}
             with torch.no_grad():
-                outputs = self.model([inputs])[0]
+                outputs = self.model(inputs)
 
-            detections = self.process_outputs(outputs)
-
-            detection_dict[i+1] = detections
-
+            N = len(outputs)
+            bs = int(self.basic['batch_size'])
+            for j in range(0, N):
+                
+                detections = self.process_outputs(outputs[j])
+                idx = i * bs + j + 1
+                detection_dict[idx] = detections
+                
 
         with open(os.path.join(self.out_dir, self.cam_ident + '.pkl' ), 'wb') as handle:
             pickle.dump(detection_dict, handle)
