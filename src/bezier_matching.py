@@ -25,7 +25,7 @@ class BezierMatching:
         self.bezier_curves = Helper.load_bezier_curve(os.path.join(self.config['curves'], self.cam_ident + '.txt'))
 
         
-        self.out_dir = os.path.join(self.default['output_dir'], self.basic['job_name'], 'counting_output', self.cam_ident) #set output directory
+        self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'counting_output', self.cam_ident) #set output directory
         os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
         self.track1txt = open(os.path.join(self.out_dir, self.cam_ident + '.txt'), 'w')
 
@@ -292,7 +292,7 @@ class BezierMatching:
     #
     def workflow(self):
         
-        tracker_dir = os.path.join(self.default['output_dir'], self.basic['job_name'], 'tracker_output', self.cam_ident)
+        tracker_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'tracker_output', self.cam_ident)
         category_dict = {'Car': 1, 'Truck': 2, 'Bus': 2}
 
 

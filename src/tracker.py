@@ -29,7 +29,7 @@ class Tracker():
         self.cam_ident = self.default['cam_name']
 
         
-        self.out_dir = os.path.join(self.default['output_dir'], self.basic['job_name'], 'tracker_output', self.cam_ident) #set output directory
+        self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'tracker_output', self.cam_ident) #set output directory
         os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
         print()
 
@@ -94,7 +94,7 @@ class Tracker():
     #
     def run_tracker(self): 
 
-        detection_file = os.path.join(self.default['output_dir'], self.basic['job_name'], 'detection_output', self.cam_ident, self.cam_ident + '.pkl')
+        detection_file = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'detection_output', self.cam_ident, self.cam_ident + '.pkl')
         with open(detection_file, 'rb') as f:
             detections = pickle.load(f)
         
