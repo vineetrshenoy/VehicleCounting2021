@@ -25,7 +25,7 @@ class VisualizeTracker():
         self.default = config['DEFAULT']
         self.config = config['TRACKING']
         self.cam_ident = self.default['cam_name']
-        self.out_dir = os.path.join(self.default['output_dir'], self.basic['job_name'], 'tracker_output', self.cam_ident)
+        self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'tracker_output', self.cam_ident)
         
         self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
@@ -97,12 +97,14 @@ class VisualizeTracker():
 
         framepkl, trackpkl = self.load_files() #loads tracking files
 
-        images = os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)) #gets the images
+        data_dir = '/vulcanscratch/vshenoy/aicity_2020/dataset_A_frames'
+
+        images = os.listdir(os.path.join(data_dir, self.cam_ident)) #gets the images
         images = sorted(images)
         for i in tqdm(range(0, len(images), int(self.config['step']))):
             imgName = images[i]
             frameNum = int(imgName.replace(".jpg", ""))
-            img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, imgName)) #read the images
+            img = cv2.imread(os.path.join(data_dir, self.cam_ident, imgName)) #read the images
             img = self.write_video_frame(img, framepkl, trackpkl, i) #write the images
             cv2.imwrite(os.path.join(self.out_dir, imgName), img)
 

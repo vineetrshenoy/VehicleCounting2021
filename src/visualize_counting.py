@@ -19,7 +19,7 @@ class VisualizeCounting():
         self.basic = basic_config['DEFAULT']
         self.default = config['DEFAULT']
         self.cam_ident = self.default['cam_name']
-        self.out_dir = os.path.join(self.default['output_dir'], self.basic['job_name'], 'counting_output', self.cam_ident) #set output directory
+        self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'counting_output', self.cam_ident) #set output directory
         self.roi = Helper.get_roi(self.default['roi'])
 
         self.display_loc = Helper.load_display_locations(os.path.join('src/display_loc', self.cam_ident + '.txt'))
@@ -90,7 +90,7 @@ class VisualizeCounting():
         
         
         results = self.read_counting_file()
-        imgLoc = os.path.join(self.default['output_dir'], self.basic['job_name'],'tracker_output')
+        imgLoc = os.path.join(self.basic['output_dir'], self.basic['job_name'],'tracker_output')
         #imgLoc = 'src/vc_outputs/aicity/tracker_output'
         images = sorted(glob.glob(os.path.join(imgLoc, self.cam_ident, '*.jpg')))
         N = len(images)
