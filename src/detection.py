@@ -73,7 +73,7 @@ class DetectDali:
         self.config = config['DETECTION']
         
 
-        #self.load_model()
+        self.load_model()
 
         self.cam_ident = self.default['cam_name']
         self.out_dir = os.path.join(
@@ -211,7 +211,7 @@ class DetectDali:
         bs = int(self.basic['batch_size'])
         sl = int(self.basic['sequence_length'])
 
-        pipe = VideoPipe(batch_size=1, num_threads=1, device_id=0, data=video, sequence_length=16, shuffle=False)
+        pipe = VideoPipe(batch_size=bs, num_threads=1, device_id=0, data=video, sequence_length=sl, shuffle=False)
         pipe.build()
         dali_iter = DALIGenericIterator(pipe, ['data'], pipe.epoch_size("Reader"), fill_last_batch=False)
 
@@ -245,28 +245,30 @@ class DetectDali:
         start_process_times = time.process_time()
         detection_dict = {}
         for i, data in tqdm(enumerate(dali_iter)):
-            '''
-            img = data[0]['data'][:, 0, :, :, :]
+            
+            
+            img = data[0]['data'][0, :, :, :, :]
             inputs = self.create_model_input(img)
 
             with torch.no_grad():
                 outputs = self.model(inputs)
 
             N = len(outputs)
-            bs = int(self.basic['batch_size'])
+            sl = int(self.basic['sequence_length'])
             for j in range(0, N):
                 
                 detections = self.process_outputs(outputs[j])
-                idx = i * bs + j + 1
+                idx = i * sl + j + 1
                 detection_dict[idx] = detections
-            '''
+            
         end_process_time = time.process_time()
         t = end_process_time - start_process_times
         logger.info('Detection time: {}'.format(t))
+        
         with open(os.path.join(self.out_dir, self.cam_ident + '.pkl' ), 'wb') as handle:
             pickle.dump(detection_dict, handle)
         
-        x = 5
+        
 
 
 if __name__ == '__main__':
