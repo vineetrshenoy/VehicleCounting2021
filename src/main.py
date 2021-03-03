@@ -28,17 +28,17 @@ def main() -> None:
     VisualizeDetector().run_visualizations()
 
     #DeepsortTracker().run_deepsort()
-    logger.info('Tracking for {}'.format(config['DEFAULT']['cam_name']))
-    Tracker().run_tracker()
-    
-    logger.info('Visualize Tracking for {}'.format(config['DEFAULT']['cam_name']))
-    VisualizeTracker().run_visualizations()
-    
-    logger.info('Counting for {}'.format(config['DEFAULT']['cam_name']))
-    BezierMatching().workflow()
-    
-    logger.info('Visualize Counting for {}'.format(config['DEFAULT']['cam_name']))
-    VisualizeCounting().workflow()
+    #logger.info('Tracking for {}'.format(config['DEFAULT']['cam_name']))
+    #Tracker().run_tracker()
+    #
+    #logger.info('Visualize Tracking for {}'.format(config['DEFAULT']['cam_name']))
+    #VisualizeTracker().run_visualizations()
+    #
+    #logger.info('Counting for {}'.format(config['DEFAULT']['cam_name']))
+    #BezierMatching().workflow()
+    #
+    #logger.info('Visualize Counting for {}'.format(config['DEFAULT']['cam_name']))
+    #VisualizeCounting().workflow()
 
 
 
