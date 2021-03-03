@@ -15,22 +15,29 @@ logger = app_logger.get_logger('main')
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
-
+basic_config = configparser.ConfigParser()
+basic_config.read('config/basic.ini')
 
 def main() -> None:
+    logger.info('JOB NAME {}'.format(basic_config['DEFAULT']['job_name']))
     
-    #dt = DetectDetectron()
-    #detection_dict = dt.run_predictions()
-
-    dd = DetectDali()
-    dd.run_predictions()
+    logger.info('Detection for {}'.format(config['DEFAULT']['cam_name']))
+    DetectDali().run_predictions()
+    
+    logger.info('Visualize Detection for {}'.format(config['DEFAULT']['cam_name']))
+    VisualizeDetector().run_visualizations()
 
     #DeepsortTracker().run_deepsort()
-    
+    logger.info('Tracking for {}'.format(config['DEFAULT']['cam_name']))
     Tracker().run_tracker()
+    
+    logger.info('Visualize Tracking for {}'.format(config['DEFAULT']['cam_name']))
     VisualizeTracker().run_visualizations()
     
+    logger.info('Counting for {}'.format(config['DEFAULT']['cam_name']))
     BezierMatching().workflow()
+    
+    logger.info('Visualize Counting for {}'.format(config['DEFAULT']['cam_name']))
     VisualizeCounting().workflow()
 
 

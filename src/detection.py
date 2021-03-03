@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import time
+import app_logger
 from nvidia.dali.pipeline import Pipeline
 import nvidia.dali.ops as ops
 import nvidia.dali.types as types
@@ -16,23 +17,20 @@ import matplotlib.path as mplPath
 from helper import Helper
 from PIL import Image
 import cv2
-import numpy as np
 import torch
 import configparser
 import pickle
 from tqdm import tqdm
 from detectron2 import model_zoo
 from detectron2.modeling import build_model
-from detectron2.engine import DefaultPredictor
 from detectron2.checkpoint import DetectionCheckpointer
 import detectron2.data.transforms as T
 from detectron2.config import get_cfg
-from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 from detectron2.layers import nms
-'''
-logger = app_logger.get_logger('detect_detectron')
-'''
+
+logger = app_logger.get_logger('detectron')
+
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
 
@@ -75,7 +73,7 @@ class DetectDali:
         self.config = config['DETECTION']
         
 
-        self.load_model()
+        #self.load_model()
 
         self.cam_ident = self.default['cam_name']
         self.out_dir = os.path.join(
@@ -213,7 +211,7 @@ class DetectDali:
         bs = int(self.basic['batch_size'])
         sl = int(self.basic['sequence_length'])
 
-        pipe = VideoPipe(batch_size=bs, num_threads=1, device_id=0, data=video, sequence_length=sl, shuffle=False)
+        pipe = VideoPipe(batch_size=1, num_threads=1, device_id=0, data=video, sequence_length=16, shuffle=False)
         pipe.build()
         dali_iter = DALIGenericIterator(pipe, ['data'], pipe.epoch_size("Reader"), fill_last_batch=False)
 
@@ -244,9 +242,10 @@ class DetectDali:
     def run_predictions(self):
 
         dali_iter = self.build_dali_pipeline()
-
+        start_process_times = time.process_time()
         detection_dict = {}
         for i, data in tqdm(enumerate(dali_iter)):
+            '''
             img = data[0]['data'][:, 0, :, :, :]
             inputs = self.create_model_input(img)
 
@@ -260,8 +259,10 @@ class DetectDali:
                 detections = self.process_outputs(outputs[j])
                 idx = i * bs + j + 1
                 detection_dict[idx] = detections
-                
-
+            '''
+        end_process_time = time.process_time()
+        t = end_process_time - start_process_times
+        logger.info('Detection time: {}'.format(t))
         with open(os.path.join(self.out_dir, self.cam_ident + '.pkl' ), 'wb') as handle:
             pickle.dump(detection_dict, handle)
         
