@@ -14,12 +14,14 @@ from helper import Helper
 from detectron2.modeling import build_model
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
+from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.engine import DefaultPredictor
 from detectron2.structures.boxes import BoxMode
+import detectron2.data.transforms as T
 from detectron2.layers import nms
-from deep_sort.siamese_net import *
-from deepsort_tracker import DeepsortTracker
-from feature_extractor import SaverExtractor
+#from deep_sort.siamese_net import *
+#from deepsort_tracker import DeepsortTracker
+#from feature_extractor import SaverExtractor
 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -44,38 +46,42 @@ class DetectDetectron:
         self.basic = basic_config['DEFAULT']
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
-        predictor, cfg = self.load_model()
-        self.predictor = predictor
-        self.cfg = cfg
+        
+        self.load_model()
+        
+        
         self.cam_ident = self.default['cam_name']
-        self.out_dir = os.path.join(self.default['output_dir'], self.basic['job_name'], 'detection_output', self.cam_ident)
+        self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'detection_output', self.cam_ident)
         os.makedirs(self.out_dir, exist_ok=True)
         self.roi = Helper.get_roi(self.default['roi'])
         
         #Tracker Feature extractor
-        self.feature_extractor = SaverExtractor()
-
-        ##Video visualization
-        self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
-        video_name = os.path.join(self.out_dir, self.cam_ident + '.avi')
-        frame_dim = (int(self.default['width']), int(self.default['height']))
-        self.out_video = cv2.VideoWriter(video_name, self.fourcc, int(self.default['fps']), frame_dim) 
+        #self.feature_extractor = SaverExtractor()
+ 
         
     
     ##
     # Loads a model for inference
-    # @returns DefaultPredictor, cfg object
+    # @returns None
     #
     def load_model(self):
         
-        cfg = get_cfg()
-        cfg.merge_from_file(model_zoo.get_config_file(basic_config['DETECTION']['config_file']))
-        #cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7 # set threshold for this model
-        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(basic_config['DETECTION']['config_file'])
-        cfg.MODEL.DEVICE = 'cuda:0'
-        predictor = DefaultPredictor(cfg)
+        self.cfg = get_cfg()
+        model_file = self.basic['model_file']
+        self.cfg.merge_from_file(model_zoo.get_config_file(model_file))
+        self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model_file)
+        self.cfg.MODEL.RETINANET.SCORE_THRESH_TEST = 0.7
+        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7
+        #self.cfg.MODEL.DEVICE='cpu'
+        self.model = build_model(self.cfg)
+        self.model.eval()
 
-        return predictor, cfg
+        checkpointer = DetectionCheckpointer(self.model)
+        checkpointer.load(self.cfg.MODEL.WEIGHTS)
+
+        self.aug = T.ResizeShortestEdge(
+            [self.cfg.INPUT.MIN_SIZE_TEST, self.cfg.INPUT.MIN_SIZE_TEST], self.cfg.INPUT.MAX_SIZE_TEST
+        )
 
     ##
     #   Processes a filename
