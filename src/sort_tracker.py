@@ -1,5 +1,5 @@
 import os
-from sort import Sort
+from sort_online import Sort
 import numpy as np
 import cv2
 import sys
@@ -77,9 +77,9 @@ class SortTracker():
         bus_detections = np.array(detections[1])
         truck_detections = np.array(detections[2])
 
-        car_output = self.car_tracker.update(car_detections)
-        bus_output = self.bus_tracker.update(bus_detections)
-        truck_output = self.truck_tracker.update(truck_detections)
+        car_output, car_tracklet = self.car_tracker.update(car_detections)
+        bus_output, bus_tracklet  = self.bus_tracker.update(bus_detections)
+        truck_output, truck_tracklet = self.truck_tracker.update(truck_detections)
 
         self.process_tracker_output(car_output, self.car_frameBox, self.car_trackBox, frame_num - 1)
         self.process_tracker_output(bus_output, self.bus_frameBox, self.bus_trackBox, frame_num - 1)
