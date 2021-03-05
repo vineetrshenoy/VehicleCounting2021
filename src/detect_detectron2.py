@@ -157,7 +157,7 @@ class DetectDetectron:
         bus_detections = self.perform_nms(bus_detections)
         truck_detections = self.perform_nms(truck_detections)
         detections = car_detections + bus_detections + truck_detections
-        return detections
+        return detections, [car_detections, bus_detections, truck_detections]
 
     ##
     #   Performs non-maximal supression on the bounding boxes

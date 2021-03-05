@@ -11,6 +11,7 @@ import app_logger
 from helper import Helper
 
 from detect_detectron2 import DetectDetectron
+from sort_tracker import SortTracker
 
 logger = app_logger.get_logger('detectron')
 
@@ -35,6 +36,7 @@ class DetectionTracker:
         self.config = config['DETECTION']
 
         self.detector = DetectDetectron()
+        self.tracker = SortTracker()
         self.video = os.path.join(self.detector.basic['data_dir'], 
             self.detector.default['cam_name']) + '.mp4'
         
@@ -64,26 +66,28 @@ class DetectionTracker:
             if ret == False:
                 break
             
-            #Detection portion
+            ####Detection portion
             inputs = self.get_model_input(frame)
             with torch.no_grad():
                 pred = self.detector.model([inputs])[0]
 
-            detections = self.detector.process_outputs(pred)
+            detections, all_dets = self.detector.process_outputs(pred)
             detection_dict[frame_num] = detections
 
-            frame_num += 1
+            ####TrackerPortion
+            self.tracker.update_trackers(all_dets, frame_num)
 
             if frame_num % 20 == 0:
                 print('Frame Number {}'.format(frame_num))
 
+            frame_num += 1
         
         outfile = os.path.join(self.detector.out_dir, 
             self.detector.cam_ident + '.pkl' )
         with open(outfile, 'wb') as handle:
             pickle.dump(detection_dict, handle)
 
-        
+        self.tracker.write_outputs()
 
 
 
