@@ -6,3 +6,5 @@ slurm_scripts/
 vc_outputs/
 *.sif
 scripts/*.out.*
+.bash_history
+fontlist*
