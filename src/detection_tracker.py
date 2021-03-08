@@ -8,10 +8,12 @@ import configparser
 import torch
 import time
 import app_logger
+import subprocess
 from helper import Helper
 
 from detect_detectron2 import DetectDetectron
 from sort_tracker import SortTracker
+
 
 logger = app_logger.get_logger('detectron')
 
@@ -77,8 +79,9 @@ class DetectionTracker:
             ####TrackerPortion
             self.tracker.update_trackers(all_dets, frame_num)
 
-            if frame_num % 20 == 0:
+            if frame_num % 200 == 0:
                 print('Frame Number {}'.format(frame_num))
+                #self.tracker.write_outputs()
 
             frame_num += 1
         
@@ -88,23 +91,26 @@ class DetectionTracker:
             pickle.dump(detection_dict, handle)
 
         self.tracker.write_outputs()
-
-
+        '''
+        pid = subprocess.Popen([sys.executable, "bezier_online.py config/cam_13.ini"], 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE, 
+            stdin=subprocess.PIPE)
+        '''
+        print('Done')
 
 if __name__ == '__main__':
 
     DetectionTracker().workflow()
-
-
+    #pid = subprocess.Popen(["python", "/fs/diva-scratch/vshenoy/VehicleCounting/src/bezier_online.py /fs/diva-scratch/vshenoy/VehicleCounting/config/cam_13.ini"]).pid
     '''
-    video_name = '/fs/diva-scratch/aicity_2021/AIC21_Track1_Vehicle_Counting/Dataset_A/cam_13.mp4'
-    cap = cv2.VideoCapture(video_name)
-
-    while(cap.isOpened()):
-        ret, frame = cap.read()
-        cv2.imwrite('frame.png', frame)
+    filename = '/fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/aic/tracker_output/cam_13/bezier_idx.pkl'
+    with open(filename, 'rb') as f:
+        data = pickle.load(f)
+    idx = data[1]
+    for list1 in idx:
+        for list2 in list1:
+            print(list2.hits)
     '''
-
-
 
     print('Hello World')

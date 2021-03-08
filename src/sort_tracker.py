@@ -37,6 +37,11 @@ class SortTracker():
         self.car_tracker = Sort() #Initialize sort object
         self.bus_tracker = Sort()
         self.truck_tracker = Sort()
+
+        self.tracklets = {'Car': [], 'Bus': [], 'Truck': []}
+
+        self.frameBox = {'Car': {}, 'Bus': {}, 'Truck': {}}
+        self.trackBox = {'Car': {}, 'Bus': {}, 'Truck': {}}
         
         self.car_frameBox = {}
         self.car_trackBox = {}
@@ -69,6 +74,13 @@ class SortTracker():
             frameBox[frameCount].append((ID, (X1, Y1, X2, Y2)))
             trackBox[ID].append((frameCount, (X1, Y1, X2, Y2)))
 
+    def tracklet_update(self, tracklet, cat):
+        
+        indices = tracklet[:, 4]
+        N = len(indices)
+        for i in range(0, N):
+            self.tracklets[cat].append(int(indices[i]))
+
     
 
     def update_trackers(self, detections, frame_num):
@@ -80,6 +92,16 @@ class SortTracker():
         car_output, car_tracklet = self.car_tracker.update(car_detections)
         bus_output, bus_tracklet  = self.bus_tracker.update(bus_detections)
         truck_output, truck_tracklet = self.truck_tracker.update(truck_detections)
+
+        if car_tracklet is not None:
+            self.tracklets['Car'] = self.tracklets['Car'] + car_tracklet
+            #self.tracklet_update(car_tracklet, 'Car')
+        if bus_tracklet is not None:
+            self.tracklets['Bus'] = self.tracklets['Bus'] + bus_tracklet
+            #self.tracklet_update(bus_tracklet, 'Bus')
+        if truck_tracklet is not None:
+            self.tracklets['Truck'] = self.tracklets['Truck'] + truck_tracklet
+            #self.tracklet_update(truck_tracklet, 'Truck')
 
         self.process_tracker_output(car_output, self.car_frameBox, self.car_trackBox, frame_num - 1)
         self.process_tracker_output(bus_output, self.bus_frameBox, self.bus_trackBox, frame_num - 1)
@@ -102,12 +124,25 @@ class SortTracker():
 
 
 
-
     def write_outputs(self):
         # Save frameBox and trackBox as a pickle file and return 
 
         self.per_class_writer(self.car_frameBox, self.car_trackBox, 'Car')
         self.per_class_writer(self.bus_frameBox, self.bus_trackBox, 'Bus')
         self.per_class_writer(self.truck_frameBox, self.truck_trackBox, 'Truck')
+
+        bezier_idx = {1: self.tracklets['Car'],
+            3: self.tracklets['Bus'],
+            2: self.tracklets['Truck']}
+       
+        bezier_outname = os.path.join(self.out_dir, 'bezier_idx.pkl')
+        pickle.dump(bezier_idx, open(bezier_outname, "wb"))
+
+        self.flush()
+
+    def flush(self):
+        self.tracklets['Car'] = []
+        self.tracklets['Bus'] = []
+        self.tracklets['Truck'] = []
 
     

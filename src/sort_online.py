@@ -181,6 +181,7 @@ class Sort(object):
     self.min_hits = min_hits
     self.trackers = []
     self.frame_count = 0
+    self.return_idx = set()
 
   def reset(self, max_age = 10, min_hits=3):
     self.max_age = max_age
@@ -229,19 +230,21 @@ class Sort(object):
         d = trk.get_state()[0]
         if((trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits)):
           ret.append(np.concatenate((d,[trk.id+1])).reshape(1,-1)) # +1 as MOT benchmark requires positive
+          self.return_idx.update([trk.id + 1])
         i -= 1
         #remove dead tracklet
         if(trk.time_since_update > self.max_age):
           item = self.trackers.pop(i)
-          dead.append(np.concatenate((d,[item.id+1])).reshape(1,-1))
+          if (item.id + 1) in self.return_idx:
+            dead.append(item.id+1)
      
     
     if(len(ret)>0 and len(dead) > 0):
-      return np.concatenate(ret), np.concatenate(dead)
+      return np.concatenate(ret), dead #np.concatenate(dead)
     if(len(ret)>0 and len(dead) == 0):
       return np.concatenate(ret), None
     if(len(ret)==0 and len(dead) > 0):
-      return np.empty((0,5)), np.concatenate(dead)
+      return np.empty((0,5)), dead #np.concatenate(dead)
     return np.empty((0,5)), None
 
   
