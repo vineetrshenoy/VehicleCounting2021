@@ -13,6 +13,7 @@ from helper import Helper
 
 from detect_detectron2 import DetectDetectron
 from sort_tracker import SortTracker
+from bezier_online import BezierOnline
 
 
 logger = app_logger.get_logger('detectron')
@@ -39,6 +40,7 @@ class DetectionTracker:
 
         self.detector = DetectDetectron()
         self.tracker = SortTracker()
+        self.counter = BezierOnline()
         self.video = os.path.join(self.detector.basic['data_dir'], 
             self.detector.default['cam_name']) + '.mp4'
         
@@ -81,7 +83,9 @@ class DetectionTracker:
 
             if frame_num % 200 == 0:
                 print('Frame Number {}'.format(frame_num))
-                #self.tracker.write_outputs()
+                self.tracker.write_outputs()
+                self.counter.workflow()
+                self.tracker.flush()
 
             frame_num += 1
         
@@ -91,6 +95,7 @@ class DetectionTracker:
             pickle.dump(detection_dict, handle)
 
         self.tracker.write_outputs()
+        self.counter.track1txt.close()
         '''
         pid = subprocess.Popen([sys.executable, "bezier_online.py config/cam_13.ini"], 
             stdout=subprocess.PIPE, 

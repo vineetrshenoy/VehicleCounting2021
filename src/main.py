@@ -7,6 +7,7 @@ from visualize_detector import VisualizeDetector
 from visualize_tracker import VisualizeTracker
 from bezier_matching import BezierMatching
 from visualize_counting import VisualizeCounting
+from detection_tracker import DetectionTracker
 #from deepsort_tracker import DeepsortTracker
 from detection import DetectDali
 import pickle
@@ -28,16 +29,20 @@ def main() -> None:
     #VisualizeDetector().run_visualizations()
 
     #DeepsortTracker().run_deepsort()
-    logger.info('Tracking for {}'.format(config['DEFAULT']['cam_name']))
-    Tracker().run_tracker()
-    
-    logger.info('Visualize Tracking for {}'.format(config['DEFAULT']['cam_name']))
+    #logger.info('Tracking for {}'.format(config['DEFAULT']['cam_name']))
+    #Tracker().run_tracker()
+    #
+    #logger.info('Visualize Tracking for {}'.format(config['DEFAULT']['cam_name']))
+    #VisualizeTracker().run_visualizations()
+    #
+    #logger.info('Counting for {}'.format(config['DEFAULT']['cam_name']))
+    #BezierMatching().workflow()
+    #
+    #logger.info('Visualize Counting for {}'.format(config['DEFAULT']['cam_name']))
+    #VisualizeCounting().workflow()
+
+    DetectionTracker().workflow()
     VisualizeTracker().run_visualizations()
-    
-    logger.info('Counting for {}'.format(config['DEFAULT']['cam_name']))
-    BezierMatching().workflow()
-    
-    logger.info('Visualize Counting for {}'.format(config['DEFAULT']['cam_name']))
     VisualizeCounting().workflow()
 
 

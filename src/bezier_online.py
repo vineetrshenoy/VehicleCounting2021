@@ -261,6 +261,7 @@ class BezierOnline:
     def process_tracking_results(self, data, cat_id, indices):
         
         idx = indices[cat_id]
+        
         for trackerID in tqdm(idx): #for each tracked vehicle
 
             tracked_vehicle = data[trackerID]
@@ -282,6 +283,8 @@ class BezierOnline:
                 frame_id = tracked_vehicle[N - 1][0] + 1 #tracker is zero-indexed
                 video_id = 1
 
+                if cat_id == 3: #For the submission purposes, treat buses/truck the same
+                    cat_id = 2
                 self.track1txt.write('{} {} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id, trackerID))
 
         
@@ -314,7 +317,7 @@ class BezierOnline:
                 cat_id = category_dict[cat]
                 self.process_tracking_results(tracker_results, cat_id, indices)
 
-        self.track1txt.close()
+        #self.track1txt.close()
 
 
     
