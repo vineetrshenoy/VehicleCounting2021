@@ -42,14 +42,14 @@ def main() -> None:
     #VisualizeCounting().workflow()
 
     DetectionTracker().workflow()
-    VisualizeTracker().run_visualizations()
-    VisualizeCounting().workflow()
-
-
-
-    Tracker().run_tracker(detection_dict)
     #VisualizeTracker().run_visualizations()
-    BezierMatching().workflow()
+    #VisualizeCounting().workflow()
+
+
+
+    #Tracker().run_tracker(detection_dict)
+    #VisualizeTracker().run_visualizations()
+    #BezierMatching().workflow()
     #VisualizeCounting().workflow()
 if __name__ == '__main__':
 

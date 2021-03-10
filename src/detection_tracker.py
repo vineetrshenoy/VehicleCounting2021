@@ -38,6 +38,8 @@ class DetectionTracker:
         self.default = config['DEFAULT']
         self.config = config['DETECTION']
 
+        self.time = time.time()
+
         self.detector = DetectDetectron()
         self.tracker = SortTracker()
         self.counter = BezierOnline()
@@ -81,7 +83,7 @@ class DetectionTracker:
             ####TrackerPortion
             self.tracker.update_trackers(all_dets, frame_num)
 
-            if frame_num % 200 == 0:
+            if frame_num % 75 == 0:
                 print('Frame Number {}'.format(frame_num))
                 self.tracker.write_outputs()
                 self.counter.workflow()

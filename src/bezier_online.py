@@ -6,6 +6,7 @@ import configparser
 import glob
 from tqdm import tqdm
 from helper import Helper
+import time
 
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
@@ -23,11 +24,17 @@ class BezierOnline:
         self.default = config['DEFAULT']
         self.cam_ident = self.default['cam_name']
         self.bezier_curves = Helper.load_bezier_curve(os.path.join(self.config['curves'], self.cam_ident + '.txt'))
-
+        self.start_time = time.time()
         
         self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'counting_output', self.cam_ident) #set output directory
         os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
-        self.track1txt = open(os.path.join(self.out_dir, self.cam_ident + '.txt'), 'a')
+        
+        outname = os.path.join(self.basic['output_dir'], self.basic['job_name'])
+        text_file = os.path.join(outname, self.basic['job_name'] + '.txt')
+        append_write = 'w'
+        if os.path.exists(text_file):
+            append_write = 'a'
+        self.track1txt = open(text_file, append_write)
 
 
     
@@ -278,14 +285,15 @@ class BezierOnline:
 
                   
             mvt_id = self.project_on_movements(coor)
-
+            gen_time = int(time.time() - self.start_time)
             if mvt_id != -1:
                 frame_id = tracked_vehicle[N - 1][0] + 1 #tracker is zero-indexed
-                video_id = 1
+                video_id = int(self.default['vid_id'])
 
                 if cat_id == 3: #For the submission purposes, treat buses/truck the same
                     cat_id = 2
-                self.track1txt.write('{} {} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id, trackerID))
+                #self.track1txt.write('{} {} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id, trackerID))
+                self.track1txt.write('{} {} {} {} {}\n'.format(gen_time, video_id, frame_id, mvt_id, cat_id))
 
         
 
