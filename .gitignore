@@ -6,3 +6,6 @@ slurm_scripts/
 vc_outputs/
 *.sif
 src/display_loc/*.png
+scripts/*.out.*
+.bash_history
+fontlist*
