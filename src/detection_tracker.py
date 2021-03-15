@@ -46,15 +46,7 @@ class DetectionTracker:
         
         
     
-    def get_model_input(self, img):
-        
-        height, width = img.shape[:2]
-        img_pred = self.detector.aug.get_transform(img).apply_image(img)
-        img_pred = img_pred.transpose(2, 0, 1)
-        img_pred = torch.from_numpy(img_pred)
-        inputs = {'image': img_pred, 'height':height, 'width': width}
-        
-        return inputs
+    
 
 
 
@@ -75,10 +67,15 @@ class DetectionTracker:
                 break
             
             ####Detection portion
-            inputs = self.get_model_input(frame)
+            inputs = self.detector.get_model_input(frame)
             with torch.no_grad():
                 pred, features = self.detector.inference([inputs])
 
+
+            maps = list(features.values())[0:4]
+            boxes = pred[0]['instances'].get_fields()['pred_boxes']
+            ten = [x for x in boxes]
+            bbox_feat = self.detector.box_pooler(maps, ten)
             detections, all_dets = self.detector.process_outputs(pred[0])
             #features = self.detector.feature_extractor.workflow(frame, detections)
             detection_dict[frame_num] = detections

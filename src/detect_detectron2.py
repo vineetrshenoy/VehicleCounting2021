@@ -13,7 +13,7 @@ from helper import Helper
 
 from detectron2.modeling import build_model
 from detectron2.modeling import GeneralizedRCNN
- detectron2.modeling.poolers import ROIPooler
+from detectron2.modeling.poolers import ROIPooler
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.checkpoint import DetectionCheckpointer
@@ -87,10 +87,11 @@ class DetectDetectron:
         self.aug = T.ResizeShortestEdge(
             [self.cfg.INPUT.MIN_SIZE_TEST, self.cfg.INPUT.MIN_SIZE_TEST], self.cfg.INPUT.MAX_SIZE_TEST
         )
-
+        input_shape = self.model.backbone.output_shape()
+        #del input_shape['p6']
         in_features = self.cfg.MODEL.ROI_HEADS.IN_FEATURES
         pooler_info = self.cfg.MODEL.ROI_BOX_HEAD
-        pooler_res = pooler_info.POOLER_RESOLUTION
+        pooler_resolution = pooler_info.POOLER_RESOLUTION
         sampling_ratio = pooler_info.POOLER_SAMPLING_RATIO
         pooler_type = pooler_info.POOLER_TYPE
         pooler_scales = tuple(1.0 / input_shape[k].stride for k in in_features)
@@ -111,17 +112,43 @@ class DetectDetectron:
         features = self.model.backbone(images.tensor)
 
         proposals, _ = self.model.proposal_generator(images, features, None)
-        results, _ = self.model.roi_heads(images, features, proposals, None)
+        instances, _ = self.model.roi_heads(images, features, proposals, None)
+
+        box_features = [features[f] for f in self.model.roi_heads.in_features]
+        boxes = [x.pred_boxes for x in instances]
+
+        bboxfeatures = self.model.roi_heads.box_pooler(box_features, boxes)
 
         if do_postprocess:
             assert not torch.jit.is_scripting()
-            return GeneralizedRCNN._postprocess(results, batched_inputs, images.image_sizes), features
+            return GeneralizedRCNN._postprocess(instances, batched_inputs, images.image_sizes), bboxfeatures
 
-        return results
+        return instances
 
-    def per_region_feature(self):
+    def create_roi_mask(self, roi_polygon, image):
+        #image = cv2.imread(image_path, -1)    
+        mask = np.zeros(image.shape, dtype=np.uint8)
+        channel_count = image.shape[2]
+        ignore_mask_color = (255,)*channel_count
+        cv2.fillConvexPoly(mask, np.array(roi_polygon, dtype=np.int32), ignore_mask_color)
+        masked_image = cv2.bitwise_and(image, mask)
 
-        print()
+        # save the result
+        #cv2.imwrite('image_masked.png', masked_image)
+        return masked_image
+
+
+    def get_model_input(self, img):
+        
+        img = self.create_roi_mask(self.roi, img)
+        cv2.imwrite('image_masked.png', img)
+        height, width = img.shape[:2]
+        img_pred = self.aug.get_transform(img).apply_image(img)
+        img_pred = img_pred.transpose(2, 0, 1)
+        img_pred = torch.from_numpy(img_pred)
+        inputs = {'image': img_pred, 'height':height, 'width': width}
+        
+        return inputs
 
     ##
     #   Processes a filename
