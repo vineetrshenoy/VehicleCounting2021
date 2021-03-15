@@ -12,6 +12,8 @@ import app_logger
 from helper import Helper
 
 from detectron2.modeling import build_model
+from detectron2.modeling import GeneralizedRCNN
+ detectron2.modeling.poolers import ROIPooler
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.checkpoint import DetectionCheckpointer
@@ -21,11 +23,14 @@ import detectron2.data.transforms as T
 from detectron2.layers import nms
 #from deep_sort.siamese_net import *
 #from deepsort_tracker import DeepsortTracker
-#from feature_extractor import SaverExtractor
+from feature_extractor import SaverExtractor
+
 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
+
+from detectron2.structures import ImageList
 
 logger = app_logger.get_logger('detect_detectron')
 
@@ -82,6 +87,41 @@ class DetectDetectron:
         self.aug = T.ResizeShortestEdge(
             [self.cfg.INPUT.MIN_SIZE_TEST, self.cfg.INPUT.MIN_SIZE_TEST], self.cfg.INPUT.MAX_SIZE_TEST
         )
+
+        in_features = self.cfg.MODEL.ROI_HEADS.IN_FEATURES
+        pooler_info = self.cfg.MODEL.ROI_BOX_HEAD
+        pooler_res = pooler_info.POOLER_RESOLUTION
+        sampling_ratio = pooler_info.POOLER_SAMPLING_RATIO
+        pooler_type = pooler_info.POOLER_TYPE
+        pooler_scales = tuple(1.0 / input_shape[k].stride for k in in_features)
+
+        self.box_pooler = ROIPooler(
+            output_size=pooler_resolution,
+            scales=pooler_scales,
+            sampling_ratio=sampling_ratio,
+            pooler_type=pooler_type,
+        )
+
+
+    def inference(self,batched_inputs, do_postprocess: bool = True):
+
+        assert not self.model.training
+
+        images = self.model.preprocess_image(batched_inputs)
+        features = self.model.backbone(images.tensor)
+
+        proposals, _ = self.model.proposal_generator(images, features, None)
+        results, _ = self.model.roi_heads(images, features, proposals, None)
+
+        if do_postprocess:
+            assert not torch.jit.is_scripting()
+            return GeneralizedRCNN._postprocess(results, batched_inputs, images.image_sizes), features
+
+        return results
+
+    def per_region_feature(self):
+
+        print()
 
     ##
     #   Processes a filename
@@ -218,7 +258,7 @@ class DetectDetectron:
 
         detection_dict = {}
         feature_dict = {}
-        files = sorted(os.listdir(os.path.join(self.default['data_dir'], self.cam_ident)))
+        files = sorted(os.listdir(os.path.join(self.basic['data_dir'], self.cam_ident)))
         
         frame_times = np.zeros((len(files),))
         start_process_time = time.process_time()
@@ -226,7 +266,13 @@ class DetectDetectron:
         #dst = DeepsortTracker()
         for i in tqdm(range(0, len(files), int(self.config['step']))): #for every camera frame
 
-            img = cv2.imread(os.path.join(self.default['data_dir'], self.cam_ident, files[i])) #read the frame
+            img = cv2.imread(os.path.join(self.basic['data_dir'], self.cam_ident, files[i])) #read the frame
+            images = [img]
+            images = [torch.from_numpy(img) for img in images]
+            images = [img.to(self.model.device) for img in images]            
+            images = [(x - self.cfg.MODEL.PIXEL_MEAN) / self.cfg.MODEL.PIXEL_STD for x in images]
+            images = ImageList.from_tensors(images, self.model.backbone.size_divisibility)
+
 
             start_frame_time = time.process_time()
             outputs = self.predictor(img) #generate detections on image

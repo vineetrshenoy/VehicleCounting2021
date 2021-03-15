@@ -4,7 +4,8 @@ import pdb
 
 
 VAE_SEGNET_PATH = '/fs/diva-scratch/pirazhkh/reid-strong-baseline/Original/Residual/Residual/VAE/SegNet_VAE_RandomErasing/modelCheckPoint1.pth.tar'
-SAVER_CKPT_PATH = '/fs/diva-scratch/pirazhkh/reid-strong-baseline/Original/Results/2020-03-18-VAE_fixed_CityFlow_proposed_resnet152/resnet152_model_120.pth'
+#SAVER_CKPT_PATH = '/fs/diva-scratch/pirazhkh/reid-strong-baseline/Original/Results/2020-03-18-VAE_fixed_CityFlow_proposed_resnet152/resnet152_model_120.pth'
+SAVER_CKPT_PATH = '/fs/diva-scratch/pirazhkh/reid-strong-baseline/Original/Results/2021-02-21-CATT_Size256_resnet50/resnet50_model_150.pth'
 
 class Bottleneck(nn.Module):
     expansion = 4

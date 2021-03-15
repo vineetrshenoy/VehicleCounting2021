@@ -64,6 +64,10 @@ class DetectionTracker:
         detection_dict = {}
         frame_num = 1
         print('Starting Detections')
+
+
+        start_process_time = time.time()
+
         while (cap.isOpened()):
             
             ret, frame = cap.read() #Read the frame
@@ -73,9 +77,10 @@ class DetectionTracker:
             ####Detection portion
             inputs = self.get_model_input(frame)
             with torch.no_grad():
-                pred = self.detector.model([inputs])[0]
+                pred, features = self.detector.inference([inputs])
 
-            detections, all_dets = self.detector.process_outputs(pred)
+            detections, all_dets = self.detector.process_outputs(pred[0])
+            #features = self.detector.feature_extractor.workflow(frame, detections)
             detection_dict[frame_num] = detections
 
             ####TrackerPortion
@@ -83,11 +88,17 @@ class DetectionTracker:
 
             if frame_num % 200 == 0:
                 print('Frame Number {}'.format(frame_num))
-                self.tracker.write_outputs()
-                self.counter.workflow()
-                self.tracker.flush()
+                #self.tracker.write_outputs()
+                #self.counter.workflow()
+                #self.tracker.flush()
 
             frame_num += 1
+        
+        end_process_time = time.time()
+        elapsed = end_process_time - start_process_time
+
+        print('Elapsed: {} seconds'.format(elapsed))
+        
         
         outfile = os.path.join(self.detector.out_dir, 
             self.detector.cam_ident + '.pkl' )
