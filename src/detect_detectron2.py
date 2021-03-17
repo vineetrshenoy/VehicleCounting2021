@@ -151,6 +151,72 @@ class DetectDetectron:
         return inputs
 
     ##
+    #   Creates object structure for subsequent tracking
+    #   @param raw_detections The detections for a single frame 
+    #   @returns detections The processed detections
+    #
+    def mask_outputs(self, raw_detections: dict, features) -> list:
+
+        boxes = raw_detections['instances'].get_fields()['pred_boxes']	
+        scores = raw_detections['instances'].get_fields()['scores']
+        classes = raw_detections['instances'].get_fields()['pred_classes'] 
+        
+        #get detections only for these classes
+        car_indices = np.where(classes.cpu() == 2)
+        bus_indices = np.where(classes.cpu() == 5)
+        truck_indices = np.where(classes.cpu() == 7)
+
+        indices = np.append(car_indices[0], [bus_indices[0]])
+        indices = np.append(indices, truck_indices[0])	#indices of detections only including car, bus, truck
+        boxes = boxes[indices] 
+        scores = scores[indices]
+        classes = classes[indices]
+        bboxfeatures = features[indices]
+        
+        N = len(boxes)
+        #Initialize detection structure
+        car_detections = []
+        bus_detections = []
+        truck_detections = []
+                
+        for i in range(0, N): #for each box
+
+            
+            centers = boxes[i].get_centers()[0]
+                        
+            box = boxes[i].tensor[0]
+            x1 = box[0].item()
+            y1 = box[1].item()
+            x2 = box[2].item()
+            y2 = box[3].item()
+            cat = classes[i].item() #category
+            
+            tup = (x1, y1, x2, y2, scores[i].item(), cat + 1)
+            
+            
+            bbPath = mplPath.Path(self.roi) #gets the ROI coordinates
+
+            #if contains point, add to list of detections
+            if True:
+            #if bbPath.contains_point((centers[0].item(), centers[1].item())): #if inside the region of interest
+                
+                if scores[i].item() > float(self.config['score_thresh']):
+
+                    if cat == 2:
+                        car_detections.append(tup)
+                    elif cat == 5:
+                        bus_detections.append(tup)
+                    else:
+                        truck_detections.append(tup)
+
+        #Perform NMS per-class
+        car_detections = self.perform_nms(car_detections)
+        bus_detections = self.perform_nms(bus_detections)
+        truck_detections = self.perform_nms(truck_detections)
+        detections = car_detections + bus_detections + truck_detections
+        return detections, [car_detections, bus_detections, truck_detections], bboxfeatures
+
+    ##
     #   Processes a filename
     #   @param filename filepath for the image
     #   @returns frame Frame number for certain file

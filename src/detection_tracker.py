@@ -71,12 +71,7 @@ class DetectionTracker:
             with torch.no_grad():
                 pred, features = self.detector.inference([inputs])
 
-
-            maps = list(features.values())[0:4]
-            boxes = pred[0]['instances'].get_fields()['pred_boxes']
-            ten = [x for x in boxes]
-            bbox_feat = self.detector.box_pooler(maps, ten)
-            detections, all_dets = self.detector.process_outputs(pred[0])
+            detections, all_dets, bboxfeatures = self.detector.mask_outputs(pred[0], features)
             #features = self.detector.feature_extractor.workflow(frame, detections)
             detection_dict[frame_num] = detections
 
