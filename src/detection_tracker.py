@@ -13,6 +13,7 @@ from helper import Helper
 
 from detect_detectron2 import DetectDetectron
 from sort_tracker import SortTracker
+from tracker_deepsort import DeepsortTracker
 from bezier_online import BezierOnline
 
 
@@ -39,7 +40,8 @@ class DetectionTracker:
         self.config = config['DETECTION']
 
         self.detector = DetectDetectron()
-        self.tracker = SortTracker()
+        self.tracker = DeepsortTracker()
+        #self.tracker = SortTracker()
         self.counter = BezierOnline()
         self.video = os.path.join(self.detector.basic['data_dir'], 
             self.detector.default['cam_name']) + '.mp4'
@@ -69,21 +71,28 @@ class DetectionTracker:
             ####Detection portion
             inputs = self.detector.get_model_input(frame)
             with torch.no_grad():
+                #pred = self.detector.model([inputs])
                 pred, features = self.detector.inference([inputs])
+            
+            assert len(pred[0]['instances']) == features.shape[0]
+            
+            dets, all_dets, bboxfeat = self.detector.mask_outputs(pred[0], features)
+            #features = self.detector.feature_extractor.workflow(frame, dets)
+            
+            
+            detection_dict[frame_num] = dets
 
-            detections, all_dets, bboxfeatures = self.detector.mask_outputs(pred[0], features)
-            #features = self.detector.feature_extractor.workflow(frame, detections)
-            detection_dict[frame_num] = detections
-
+            if frame_num == 4:
+                import pdb; pdb.set_trace()
             ####TrackerPortion
-            self.tracker.update_trackers(all_dets, frame_num)
-
+            self.tracker.update_trackers(all_dets, bboxfeat, frame_num)
+            
             if frame_num % 200 == 0:
                 print('Frame Number {}'.format(frame_num))
                 #self.tracker.write_outputs()
                 #self.counter.workflow()
                 #self.tracker.flush()
-
+            
             frame_num += 1
         
         end_process_time = time.time()

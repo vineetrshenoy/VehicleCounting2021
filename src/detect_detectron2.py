@@ -178,6 +178,10 @@ class DetectDetectron:
         car_detections = []
         bus_detections = []
         truck_detections = []
+
+        car_features = []
+        bus_features = []
+        truck_features = []
                 
         for i in range(0, N): #for each box
 
@@ -204,17 +208,24 @@ class DetectDetectron:
 
                     if cat == 2:
                         car_detections.append(tup)
+                        car_features.append(bboxfeatures[i, :, :, :])
                     elif cat == 5:
                         bus_detections.append(tup)
+                        bus_features.append(bboxfeatures[i, :, :, :])
                     else:
                         truck_detections.append(tup)
+                        truck_features.append(bboxfeatures[i, :, :, :])
 
         #Perform NMS per-class
         car_detections = self.perform_nms(car_detections)
         bus_detections = self.perform_nms(bus_detections)
         truck_detections = self.perform_nms(truck_detections)
+        
         detections = car_detections + bus_detections + truck_detections
-        return detections, [car_detections, bus_detections, truck_detections], bboxfeatures
+        all_dets = [car_detections, bus_detections, truck_detections]
+        all_feat = [car_features, bus_features, truck_features]
+        
+        return detections, all_dets, all_feat
 
     ##
     #   Processes a filename
