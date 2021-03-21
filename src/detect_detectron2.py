@@ -118,7 +118,16 @@ class DetectDetectron:
         boxes = [x.pred_boxes for x in instances]
 
         bboxfeatures = self.model.roi_heads.box_pooler(box_features, boxes)
+        bboxfeatures = bboxfeatures.mean(dim=(2,3))
+        bboxfeatures = bboxfeatures / bboxfeatures.norm(dim=1, keepdim=True)
 
+        ###
+
+        for i, inst in enumerate(instances):
+            f = [features[key][i:i+1] for key in self.model.roi_heads.in_features]
+            inst.roi_features = self.model.roi_heads.box_pooler(f, [inst.pred_boxes])
+
+        ###
         if do_postprocess:
             assert not torch.jit.is_scripting()
             return GeneralizedRCNN._postprocess(instances, batched_inputs, images.image_sizes), bboxfeatures
@@ -178,6 +187,10 @@ class DetectDetectron:
         car_detections = []
         bus_detections = []
         truck_detections = []
+
+        car_features = []
+        bus_features = []
+        truck_features = []
                 
         for i in range(0, N): #for each box
 
@@ -204,17 +217,24 @@ class DetectDetectron:
 
                     if cat == 2:
                         car_detections.append(tup)
+                        car_features.append(bboxfeatures[i, :, :, :])
                     elif cat == 5:
                         bus_detections.append(tup)
+                        bus_features.append(bboxfeatures[i, :, :, :])
                     else:
                         truck_detections.append(tup)
+                        truck_features.append(bboxfeatures[i, :, :, :])
 
         #Perform NMS per-class
         car_detections = self.perform_nms(car_detections)
         bus_detections = self.perform_nms(bus_detections)
         truck_detections = self.perform_nms(truck_detections)
+        
         detections = car_detections + bus_detections + truck_detections
-        return detections, [car_detections, bus_detections, truck_detections], bboxfeatures
+        all_dets = [car_detections, bus_detections, truck_detections]
+        all_feat = [car_features, bus_features, truck_features]
+        
+        return detections, all_dets, all_feat
 
     ##
     #   Processes a filename

@@ -46,6 +46,7 @@ class Tracker:
         self.kf = kalman_filter.KalmanFilter()
         self.tracks = []
         self._next_id = 1
+        self.confirmed_tracks = set()
 
     def predict(self):
         """Propagate track state distributions one time step forward.
@@ -64,6 +65,11 @@ class Tracker:
             A list of detections at the current time step.
 
         """
+        #Add confirmed IDs to set
+        conf_tracks = list(filter(lambda x: x.is_confirmed(), self.tracks))
+        for trk in conf_tracks:
+            self.confirmed_tracks.update([trk.track_id])
+
         # Run matching cascade.
         matches, unmatched_tracks, unmatched_detections = \
             self._match(detections)
@@ -76,8 +82,9 @@ class Tracker:
             self.tracks[track_idx].mark_missed()
         for detection_idx in unmatched_detections:
             self._initiate_track(detections[detection_idx])
+        deleted_tracks = [t for t in self.tracks if t.is_deleted()]
         self.tracks = [t for t in self.tracks if not t.is_deleted()]
-
+        
         # Update distance metric.
         active_targets = [t.track_id for t in self.tracks if t.is_confirmed()]
         features, targets = [], []
@@ -89,6 +96,9 @@ class Tracker:
             track.features = []
         self.metric.partial_fit(
             np.asarray(features), np.asarray(targets), active_targets)
+
+        temp = list(filter(lambda x: x.track_id in self.confirmed_tracks, deleted_tracks))
+        return temp
 
     def _match(self, detections):
 
