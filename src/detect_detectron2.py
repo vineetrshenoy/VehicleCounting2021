@@ -118,7 +118,16 @@ class DetectDetectron:
         boxes = [x.pred_boxes for x in instances]
 
         bboxfeatures = self.model.roi_heads.box_pooler(box_features, boxes)
+        bboxfeatures = bboxfeatures.mean(dim=(2,3))
+        bboxfeatures = bboxfeatures / bboxfeatures.norm(dim=1, keepdim=True)
 
+        ###
+
+        for i, inst in enumerate(instances):
+            f = [features[key][i:i+1] for key in self.model.roi_heads.in_features]
+            inst.roi_features = self.model.roi_heads.box_pooler(f, [inst.pred_boxes])
+
+        ###
         if do_postprocess:
             assert not torch.jit.is_scripting()
             return GeneralizedRCNN._postprocess(instances, batched_inputs, images.image_sizes), bboxfeatures
