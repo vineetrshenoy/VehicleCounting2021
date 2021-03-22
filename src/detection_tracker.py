@@ -14,6 +14,7 @@ from helper import Helper
 from detect_detectron2 import DetectDetectron
 from sort_tracker import SortTracker
 from tracker_deepsort import DeepsortTracker
+from tracker_mot import MOTTracker
 from bezier_online import BezierOnline
 
 
@@ -40,18 +41,14 @@ class DetectionTracker:
         self.config = config['DETECTION']
 
         self.detector = DetectDetectron()
-        self.tracker = DeepsortTracker()
+        self.tracker = MOTTracker()
+        #self.tracker = DeepsortTracker()
         #self.tracker = SortTracker()
         self.counter = BezierOnline()
         self.video = os.path.join(self.detector.basic['data_dir'], 
             self.detector.default['cam_name']) + '.mp4'
         
-        
-    
-    
-
-
-
+     
     def workflow(self):
 
         cap = cv2.VideoCapture(self.video)

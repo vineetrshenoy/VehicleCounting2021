@@ -217,13 +217,13 @@ class DetectDetectron:
 
                     if cat == 2:
                         car_detections.append(tup)
-                        car_features.append(bboxfeatures[i, :, :, :])
+                        car_features.append(bboxfeatures[i])
                     elif cat == 5:
                         bus_detections.append(tup)
-                        bus_features.append(bboxfeatures[i, :, :, :])
+                        bus_features.append(bboxfeatures[i])
                     else:
                         truck_detections.append(tup)
-                        truck_features.append(bboxfeatures[i, :, :, :])
+                        truck_features.append(bboxfeatures[i])
 
         #Perform NMS per-class
         car_detections = self.perform_nms(car_detections)
