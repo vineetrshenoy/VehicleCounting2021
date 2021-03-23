@@ -73,9 +73,10 @@ class MOTTracker():
     def process_tracker_output(self, tracker_output, frameBox, trackBox, frameCount):
         
         
-        for bbox in tracker_output:
-
-            X1, Y1, X2, Y2, ID = bbox
+        for trk in tracker_output:
+            
+            ID = trk.track_id
+            X1, Y1, X2, Y2 = trk.tlbr
             ID = int(ID)
             if ID not in trackBox: #If new car, create a tracker entry
                 trackBox[ID] = []
@@ -86,6 +87,8 @@ class MOTTracker():
             frameBox[frameCount].append((ID, (X1, Y1, X2, Y2)))
             trackBox[ID].append((frameCount, (X1, Y1, X2, Y2)))
 
+    
+    
     def tracklet_update(self, tracklet, cat):
         
         indices = tracklet[:, 4]
@@ -125,9 +128,9 @@ class MOTTracker():
         truck_dets = self.tracker_mot_format(dets[2])
 
 
-        car_tracklet = self.car_tracker.update(car_dets)
-        bus_tracklet  = self.bus_tracker.update(bus_dets)
-        truck_tracklet = self.truck_tracker.update(truck_dets)
+        car_output = self.car_tracker.update(car_dets)
+        bus_output  = self.bus_tracker.update(bus_dets)
+        truck_output = self.truck_tracker.update(truck_dets)
         '''
         if car_tracklet is not None:
             self.tracklets['Car'] = self.tracklets['Car'] + car_tracklet
@@ -138,7 +141,7 @@ class MOTTracker():
         if truck_tracklet is not None:
             self.tracklets['Truck'] = self.tracklets['Truck'] + truck_tracklet
             #self.tracklet_update(truck_tracklet, 'Truck')
-
+        '''
         self.process_tracker_output(car_output, self.car_frameBox, self.car_trackBox, frame_num - 1)
         self.process_tracker_output(bus_output, self.bus_frameBox, self.bus_trackBox, frame_num - 1)
         self.process_tracker_output(truck_output, self.truck_frameBox, self.truck_trackBox, frame_num - 1)
@@ -146,7 +149,7 @@ class MOTTracker():
         return [car_output, bus_output, truck_output]
 
 
-        '''
+        
 
 
 

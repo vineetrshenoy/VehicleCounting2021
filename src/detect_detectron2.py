@@ -149,8 +149,8 @@ class DetectDetectron:
 
     def get_model_input(self, img):
         
-        img = self.create_roi_mask(self.roi, img)
-        cv2.imwrite('image_masked.png', img)
+        #img = self.create_roi_mask(self.roi, img)
+        #cv2.imwrite('image_masked.png', img)
         height, width = img.shape[:2]
         img_pred = self.aug.get_transform(img).apply_image(img)
         img_pred = img_pred.transpose(2, 0, 1)
@@ -208,8 +208,8 @@ class DetectDetectron:
             bbPath = mplPath.Path(self.roi) #gets the ROI coordinates
 
             #if contains point, add to list of detections
-            if True:
-            #if bbPath.contains_point((centers[0].item(), centers[1].item())): #if inside the region of interest
+            #if True:
+            if bbPath.contains_point((centers[0].item(), centers[1].item())): #if inside the region of interest
                 
                 if scores[i].item() > float(self.config['score_thresh']):
 
