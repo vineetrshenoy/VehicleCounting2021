@@ -8,3 +8,4 @@ vc_outputs/
 scripts/*.out.*
 .bash_history
 fontlist*
+venv/
