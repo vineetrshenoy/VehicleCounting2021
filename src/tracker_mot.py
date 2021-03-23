@@ -95,7 +95,7 @@ class MOTTracker():
 
     
     
-    def tracker_mot_format(self, detections, features):
+    def tracker_mot_format(self, detections):
 
         N = len(detections)
         detection_list = []
@@ -109,7 +109,7 @@ class MOTTracker():
             
             bbox = [xmin, ymin, (xmax - xmin), (ymax - ymin)]
             score = detections[i][4]
-            feature = torch.flatten(features[i]).cpu()
+            feature = detections[i][6]
             
             strack_i = STrack(bbox, score, feature, i, self.buffer_size)
             
@@ -118,11 +118,11 @@ class MOTTracker():
         return detection_list #list formatted for deepsort
     
 
-    def update_trackers(self, dets, feats, frame_num):
+    def update_trackers(self, dets, frame_num):
 
-        car_dets = self.tracker_mot_format(np.array(dets[0]), feats[0])
-        bus_dets = self.tracker_mot_format(np.array(dets[1]), feats[1])
-        truck_dets = self.tracker_mot_format(np.array(dets[2]), feats[2])
+        car_dets = self.tracker_mot_format(dets[0])
+        bus_dets = self.tracker_mot_format(dets[1])
+        truck_dets = self.tracker_mot_format(dets[2])
 
 
         car_tracklet = self.car_tracker.update(car_dets)
@@ -184,9 +184,39 @@ class MOTTracker():
         self.tracklets['Bus'] = []
         self.tracklets['Truck'] = []
 
+
+
+
+    ##
+    # Workflow for the tracker object
+    # @param detections The Detections file from the previous step in pipeline 
+    #
+    def run_tracker(self): 
+
+        detection_file = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'detection_output', self.cam_ident, self.cam_ident + '.pkl')
+        with open(detection_file, 'rb') as f:
+            detections = pickle.load(f)
+        
+        
+        car_dets = [list(filter(lambda x: x[5] == 3, detections[frame])) for frame in sorted(detections.keys())]
+        bus_dets = [list(filter(lambda x: x[5] == 6, detections[frame])) for frame in sorted(detections.keys())]
+        truck_dets = [list(filter(lambda x: x[5] == 8, detections[frame])) for frame in sorted(detections.keys())]
+        
+        frame_num = sorted(detections.keys())
+        for frame in frame_num:
+
+            car_dets_frame = self.tracker_mot_format(car_dets[frame])
+            bus_dets_frame = self.tracker_mot_format(bus_dets[frame])
+            truck_dets_frame = self.tracker_mot_format(truck_dets[frame])
+
+
+            car_tracklet = self.car_tracker.update(car_dets_frame)
+            bus_tracklet  = self.bus_tracker.update(bus_dets_frame)
+            truck_tracklet = self.truck_tracker.update(truck_dets_frame)
+
     
 
 
 if __name__ == '__main__':
 
-    print('Hello')
+    MOTTracker().run_tracker()

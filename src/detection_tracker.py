@@ -73,16 +73,17 @@ class DetectionTracker:
             
             assert len(pred[0]['instances']) == features.shape[0]
             
-            dets, all_dets, bboxfeat = self.detector.mask_outputs(pred[0], features)
+            dets, all_dets = self.detector.mask_outputs(pred[0], features)
             #features = self.detector.feature_extractor.workflow(frame, dets)
             
             
             detection_dict[frame_num] = dets
-
+            '''
             if frame_num == 4:
                 import pdb; pdb.set_trace()
             ####TrackerPortion
-            self.tracker.update_trackers(all_dets, bboxfeat, frame_num)
+            '''
+            self.tracker.update_trackers(all_dets, frame_num)
             
             if frame_num % 200 == 0:
                 print('Frame Number {}'.format(frame_num))

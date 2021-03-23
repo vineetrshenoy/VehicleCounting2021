@@ -188,9 +188,6 @@ class DetectDetectron:
         bus_detections = []
         truck_detections = []
 
-        car_features = []
-        bus_features = []
-        truck_features = []
                 
         for i in range(0, N): #for each box
 
@@ -204,7 +201,8 @@ class DetectDetectron:
             y2 = box[3].item()
             cat = classes[i].item() #category
             
-            tup = (x1, y1, x2, y2, scores[i].item(), cat + 1)
+            feats = bboxfeatures[i].cpu().numpy()
+            tup = (x1, y1, x2, y2, scores[i].item(), cat + 1, feats)
             
             
             bbPath = mplPath.Path(self.roi) #gets the ROI coordinates
@@ -217,13 +215,13 @@ class DetectDetectron:
 
                     if cat == 2:
                         car_detections.append(tup)
-                        car_features.append(bboxfeatures[i])
+                        
                     elif cat == 5:
                         bus_detections.append(tup)
-                        bus_features.append(bboxfeatures[i])
+
                     else:
                         truck_detections.append(tup)
-                        truck_features.append(bboxfeatures[i])
+                        
 
         #Perform NMS per-class
         car_detections = self.perform_nms(car_detections)
@@ -232,9 +230,8 @@ class DetectDetectron:
         
         detections = car_detections + bus_detections + truck_detections
         all_dets = [car_detections, bus_detections, truck_detections]
-        all_feat = [car_features, bus_features, truck_features]
         
-        return detections, all_dets, all_feat
+        return detections, all_dets
 
     ##
     #   Processes a filename
