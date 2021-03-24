@@ -229,7 +229,7 @@ class DetectDetectron:
         truck_detections = self.perform_nms(truck_detections)
         
         detections = car_detections + bus_detections + truck_detections
-        all_dets = [car_detections, bus_detections, truck_detections]
+        all_dets = {'Car': car_detections, 'Bus': bus_detections, 'Truck': truck_detections}
         
         return detections, all_dets
 

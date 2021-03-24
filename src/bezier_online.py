@@ -259,9 +259,9 @@ class BezierOnline:
     # 
     #
     def process_tracking_results(self, data, cat_id, indices):
-        
+        category_dict = {'Car': 1, 'Truck': 2, 'Bus': 3}
         idx = indices[cat_id]
-        
+        cat_id = category_dict[cat_id]
         for trackerID in tqdm(idx): #for each tracked vehicle
 
             tracked_vehicle = data[trackerID]
@@ -306,16 +306,14 @@ class BezierOnline:
 
         files = glob.glob(os.path.join(tracker_dir, 'Track*'))
 
-        for tracker_file in files:
-            #tracker_file = 'src/vc_outputs/rcnn/tracker_output/cam_15/Track_Car_cam_15.pkl'
+        for clsname in ['Car', 'Bus', 'Truck']:
+
+            filename = 'Track_{}_{}.pkl'.format(clsname, self.default['cam_name'])
+            tracker_file = os.path.join(tracker_dir, filename)
             with open(tracker_file, 'rb') as f:              
                 
                 tracker_results = pickle.load(f)
-
-                filename = os.path.basename(tracker_file)
-                cat = filename.split('_')[1]
-                cat_id = category_dict[cat]
-                self.process_tracking_results(tracker_results, cat_id, indices)
+                self.process_tracking_results(tracker_results, clsname, indices)
 
         #self.track1txt.close()
 

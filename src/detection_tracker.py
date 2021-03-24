@@ -65,30 +65,23 @@ class DetectionTracker:
             if ret == False:
                 break
             
-            ####Detection portion
+            #####################################Detection portion
             inputs = self.detector.get_model_input(frame)
             with torch.no_grad():
                 #pred = self.detector.model([inputs])
                 pred, features = self.detector.inference([inputs])
             
             assert len(pred[0]['instances']) == features.shape[0]
-            
-            dets, all_dets = self.detector.mask_outputs(pred[0], features)
-            #features = self.detector.feature_extractor.workflow(frame, dets)
-            
-            
+            dets, all_dets = self.detector.mask_outputs(pred[0], features)     
             detection_dict[frame_num] = dets
-            '''
-            if frame_num == 4:
-                import pdb; pdb.set_trace()
-            ####TrackerPortion
-            '''
+            
+            ######################################TrackerPortion
             self.tracker.update_trackers(all_dets, frame_num)
             
             if frame_num % 200 == 0:
                 print('Frame Number {}'.format(frame_num))
-                #self.tracker.write_outputs()
-                #self.counter.workflow()
+                self.tracker.write_outputs()
+                self.counter.workflow()
                 #self.tracker.flush()
             
             frame_num += 1
@@ -105,6 +98,7 @@ class DetectionTracker:
             pickle.dump(detection_dict, handle)
 
         self.tracker.write_outputs()
+        self.counter.workflow()
         self.counter.track1txt.close()
         '''
         pid = subprocess.Popen([sys.executable, "bezier_online.py config/cam_13.ini"], 
