@@ -167,13 +167,14 @@ class STrack(BaseTrack):
 
 class JDETracker(object):
 
-    def __init__(self, max_time_lost=30, feature_thres=0.7,
+    def __init__(self, max_time_lost=15, feature_thres=0.7,
                  iou_thres=0.5, iou_thres_unconfirmed=0.7):
 
         self.tracked_stracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]
         self.removed_stracks = []  # type: list[STrack]
 
+        self.tracked_ids = set()
         self.frame_id = 0
         self.max_time_lost = max_time_lost
         self.feature_thres = feature_thres
@@ -326,6 +327,9 @@ class JDETracker(object):
         self.tracked_stracks, self.lost_stracks = remove_duplicate_stracks(
             self.tracked_stracks, self.lost_stracks)
 
+
+        state_tracked_ids = [trk.track_id for trk in self.tracked_stracks]
+        self.tracked_ids.update(state_tracked_ids)
         # get scores of lost tracks
         output_stracks = [
             track for track in self.tracked_stracks if track.is_activated]
