@@ -24,8 +24,8 @@ start=`date +%s`
 
 
 
-python src/main.py config/cam_2.ini
-rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_2/cam_2.avi gdrive:/aicity2021/trackermot/
+#python src/main.py config/cam_2.ini
+#rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_2/cam_2.avi gdrive:/aicity2021/trackermot/
 
 
 

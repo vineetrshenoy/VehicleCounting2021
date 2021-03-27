@@ -148,13 +148,13 @@ class MOTTracker():
     def per_class_writer(self, frameBox, trackBox, cat):
 
         # Save frameBox and trackBox as a pickle file and return 
-        if len(trackBox.keys()) !=0:
-            trackName = "Track_" + cat + "_" + self.cam_ident + '.pkl'
-            frameName = "Frame_" + cat + "_" + self.cam_ident + '.pkl'
-            trackName = os.path.join(self.out_dir, trackName)
-            frameName = os.path.join(self.out_dir, frameName)
-            pickle.dump(trackBox, open(trackName, "wb"))
-            pickle.dump(frameBox, open(frameName, "wb"))
+        #if len(trackBox.keys()) !=0:
+        trackName = "Track_" + cat + "_" + self.cam_ident + '.pkl'
+        frameName = "Frame_" + cat + "_" + self.cam_ident + '.pkl'
+        trackName = os.path.join(self.out_dir, trackName)
+        frameName = os.path.join(self.out_dir, frameName)
+        pickle.dump(trackBox, open(trackName, "wb"))
+        pickle.dump(frameBox, open(frameName, "wb"))
 
     ##
     # Writes the outputs of the tracker to disk periodically

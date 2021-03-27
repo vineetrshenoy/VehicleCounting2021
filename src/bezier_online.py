@@ -313,6 +313,10 @@ class BezierOnline:
             with open(tracker_file, 'rb') as f:              
                 
                 tracker_results = pickle.load(f)
+
+                if len(tracker_results.keys()) == 0:
+                    continue
+
                 self.process_tracking_results(tracker_results, clsname, indices)
 
         #self.track1txt.close()

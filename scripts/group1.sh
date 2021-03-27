@@ -25,22 +25,22 @@ rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/count
 
 
 
-python src/main.py config/cam_3.ini
-rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_3/cam_3.avi gdrive:/aicity2021/trackermot/
-
-
-
+#python src/main.py config/cam_3.ini
+#rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_3/cam_3.avi gdrive:/aicity2021/trackermot/
+#
+#
+#
 python src/main.py config/cam_5.ini
 rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_5/cam_5.avi gdrive:/aicity2021/trackermot/
-
-
-
-python src/main.py config/cam_7.ini
-rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_7/cam_7.avi gdrive:/aicity2021/trackermot/
-
-
-python src/main.py config/cam_9.ini
-rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_9/cam_9.avi gdrive:/aicity2021/online
+#
+#
+#
+#python src/main.py config/cam_7.ini
+#rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_7/cam_7.avi gdrive:/aicity2021/trackermot/
+#
+#
+#python src/main.py config/cam_9.ini
+#rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_9/cam_9.avi gdrive:/aicity2021/online
 #
 #python src/main.py config/cam_10.ini
 #rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_10/cam_10.avi gdrive:/aicity2021/online

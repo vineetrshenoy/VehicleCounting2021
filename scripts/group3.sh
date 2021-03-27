@@ -30,22 +30,22 @@ rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/count
 
 
 
-python src/main.py config/cam_2_rain.ini
-rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_2_rain/cam_2_rain.avi gdrive:/aicity2021/trackermot/
+#python src/main.py config/cam_2_rain.ini
+#rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_2_rain/cam_2_rain.avi gdrive:/aicity2021/trackermot/
+#
+#
+#python src/main.py config/cam_3_rain.ini
+#rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_3_rain/cam_3_rain.avi gdrive:/aicity2021/trackermot/
 
 
-python src/main.py config/cam_3_rain.ini
-rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_3_rain/cam_3_rain.avi gdrive:/aicity2021/trackermot/
-
-
-python src/main.py config/cam_4_dawn.ini
-rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_4_dawn/cam_4_dawn.avi gdrive:/aicity2021/trackermot/
+#python src/main.py config/cam_4_dawn.ini
+#rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_4_dawn/cam_4_dawn.avi gdrive:/aicity2021/trackermot/
 
 python src/main.py config/cam_4_rain.ini
 rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_4_rain/cam_4_rain.avi gdrive:/aicity2021/trackermot/
 
-python src/main.py config/cam_5_dawn.ini
-rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_5_dawn/cam_5_dawn.avi gdrive:/aicity2021/trackermot/
+#python src/main.py config/cam_5_dawn.ini
+#rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_5_dawn/cam_5_dawn.avi gdrive:/aicity2021/trackermot/
 
 
 
