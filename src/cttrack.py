@@ -23,6 +23,7 @@ from detector import Detector
 from opts import opts
 from CenterTrack.src.demo import demo
 from ctdetection import CTDetection
+from tracker_ct import TrackerCT
 
 
 class CTTrack:
@@ -35,6 +36,7 @@ class CTTrack:
         self.default = config['DEFAULT']
 
         self.ctdets = CTDetection()
+        self.cttracker = TrackerCT()
 
         self.video = os.path.join(self.ctdets.basic['data_dir'], 
             self.ctdets.default['cam_name']) + '.mp4'
@@ -66,10 +68,18 @@ class CTTrack:
             dets, all_dets = self.ctdets.mask_outputs(ret['results'])
             detection_dict[frame_num] = dets
             #########################
+
+            ######################### Tracking
+            self.cttracker.update_trackers(ret['results'], frame_num)
+            #########################
+
         
             print('Frame Num: {}'.format(frame_num))
             frame_num +=1
 
+
+
+        self.cttracker.write_outputs()
 
         outfile = os.path.join(self.ctdets.out_dir, 
             self.default['cam_name'] + '.pkl' )
