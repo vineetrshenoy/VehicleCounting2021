@@ -41,7 +41,7 @@ class MOTTracker():
 
         self.buffer_size = 30 #int(feature_buffer_size * fps)
         max_age = 5
-        max_time_lost = int(max_age * self.default['fps'])
+        max_time_lost = max_age * int(self.default['fps'])
         feat_thresh = 0.7
         min_iou = 0.2
 
