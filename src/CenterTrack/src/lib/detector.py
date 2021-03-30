@@ -120,6 +120,10 @@ class Detector(object):
       net_time += forward_time - pre_process_time
       decode_time = time.time()
       dec_time += decode_time - forward_time
+
+      ### Keep only vehicles
+      dets = self.keep_vehicles(dets)
+
       
       # convert the cropped and 4x downsampled output coordinate system
       # back to the input image coordinate system
@@ -237,6 +241,26 @@ class Detector(object):
     if 'cur_dets' in input_meta:
       meta['cur_dets'] = input_meta['cur_dets']
     return images, meta
+
+
+  def keep_vehicles(self, dets):
+
+    c1, c2 = np.where(dets['clses'] == 2)
+    b1, b2 = np.where(dets['clses'] == 5)
+    t1, t2 = np.where(dets['clses'] == 7)
+
+    idx1 = np.concatenate((c1, b1, t1))
+    idx2 = np.concatenate((c2, b2, t2))
+
+    dets['scores'] = dets['scores'][:, idx2]
+    dets['clses'] = dets['clses'][:, idx2]
+    dets['xs'] = dets['xs'][:, idx2]
+    dets['ys'] = dets['ys'][:, idx2]
+    dets['cts'] = dets['cts'][:, idx2]
+    dets['bboxes'] = dets['bboxes'][:, idx2]
+    dets['tracking'] = dets['tracking'][:, idx2]
+
+    return dets
 
 
   def _trans_bbox(self, bbox, trans, width, height):

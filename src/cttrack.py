@@ -58,12 +58,12 @@ class CTTrack:
 
         while (cap.isOpened()):
             
-            ret, frame = cap.read() #Read the frame
+            ret, img = cap.read() #Read the frame
             if ret == False:
                 break
             
             ######################### Detection
-            img = self.ctdets.get_model_input(frame)
+            img = self.ctdets.get_model_input(img)
             ret = self.ctdets.detector.run(img)
             dets, all_dets = self.ctdets.mask_outputs(ret['results'])
             detection_dict[frame_num] = dets
@@ -73,7 +73,18 @@ class CTTrack:
             self.cttracker.update_trackers(ret['results'], frame_num)
             #########################
 
-        
+
+            if frame_num % 100 == 0:
+
+                outfile = os.path.join(self.ctdets.out_dir, 
+                    self.default['cam_name'] + '.pkl' )
+
+                with open(outfile, 'wb') as handle:
+                    pickle.dump(detection_dict, handle)
+
+                self.cttracker.write_outputs()
+
+
             print('Frame Num: {}'.format(frame_num))
             frame_num +=1
 

@@ -101,7 +101,7 @@ class CTDetection:
             
             det = dets[i]
             x1, y1, x2, y2 = det['bbox']
-            score = det['score']
+            score = np.round(det['score'], 4)
             cat = det['class'] #category
             feats = np.zeros(3)
             
