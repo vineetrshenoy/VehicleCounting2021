@@ -75,8 +75,9 @@ class DetectDetectron:
         model_file = self.basic['model_file']
         self.cfg.merge_from_file(model_zoo.get_config_file(model_file))
         self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model_file)
-        self.cfg.MODEL.RETINANET.SCORE_THRESH_TEST = 0.7
-        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7
+        thresh = float(self.config['score_thresh'])
+        self.cfg.MODEL.RETINANET.SCORE_THRESH_TEST = thresh
+        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = thresh
         #self.cfg.MODEL.DEVICE='cpu'
         self.model = build_model(self.cfg)
         self.model.eval()

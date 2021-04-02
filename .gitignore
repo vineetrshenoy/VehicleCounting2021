@@ -9,3 +9,4 @@ scripts/*.out.*
 .bash_history
 fontlist*
 venv/
+scripts/*.out
