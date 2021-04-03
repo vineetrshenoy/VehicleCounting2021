@@ -27,7 +27,7 @@ class BezierOnline:
         
         self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'counting_output', self.cam_ident) #set output directory
         os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
-        self.track1txt = open(os.path.join(self.out_dir, self.cam_ident + '.txt'), 'a')
+        self.track1txt = open(os.path.join(self.out_dir, self.cam_ident + '.txt'), 'w')
 
 
     
