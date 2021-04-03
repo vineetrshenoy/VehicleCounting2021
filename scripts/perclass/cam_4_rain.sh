@@ -11,7 +11,7 @@ start=`date +%s`
 
 
 
-CUDA_VISIBLE_DEVICES=9 nohup python src/main.py config/cam_10.ini > scripts/cam10.out & disown
+CUDA_VISIBLE_DEVICES=9 nohup python src/main.py config/cam_4_rain.ini > scripts/cam_4_rain.out & disown
 #rclone copy /fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/trackermot/counting_output/cam_10/cam_10.avi gdrive:/aicity2021/online
 
 
