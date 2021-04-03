@@ -9,3 +9,6 @@ src/display_loc/*.png
 scripts/*.out.*
 .bash_history
 fontlist*
+venv/
+scripts/*.out
+src/CenterTrack/*

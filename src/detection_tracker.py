@@ -13,6 +13,8 @@ from helper import Helper
 
 from detect_detectron2 import DetectDetectron
 from sort_tracker import SortTracker
+from tracker_deepsort import DeepsortTracker
+from tracker_mot import MOTTracker
 from bezier_online import BezierOnline
 
 
@@ -41,55 +43,62 @@ class DetectionTracker:
         self.time = time.time()
 
         self.detector = DetectDetectron()
-        self.tracker = SortTracker()
+        self.tracker = MOTTracker()
+        #self.tracker = DeepsortTracker()
+        #self.tracker = SortTracker()
         self.counter = BezierOnline()
         self.video = os.path.join(self.detector.basic['data_dir'], 
             self.detector.default['cam_name']) + '.mp4'
         
-        
-    
-    def get_model_input(self, img):
-        
-        height, width = img.shape[:2]
-        img_pred = self.detector.aug.get_transform(img).apply_image(img)
-        img_pred = img_pred.transpose(2, 0, 1)
-        img_pred = torch.from_numpy(img_pred)
-        inputs = {'image': img_pred, 'height':height, 'width': width}
-        
-        return inputs
-
-
-
+     
     def workflow(self):
 
         cap = cv2.VideoCapture(self.video)
         detection_dict = {}
         frame_num = 1
         print('Starting Detections')
+
+
+        start_process_time = time.time()
+
         while (cap.isOpened()):
             
             ret, frame = cap.read() #Read the frame
             if ret == False:
                 break
             
-            ####Detection portion
-            inputs = self.get_model_input(frame)
+            #####################################Detection portion
+            inputs = self.detector.get_model_input(frame)
             with torch.no_grad():
-                pred = self.detector.model([inputs])[0]
-
-            detections, all_dets = self.detector.process_outputs(pred)
-            detection_dict[frame_num] = detections
-
-            ####TrackerPortion
+                #pred = self.detector.model([inputs])
+                pred, features = self.detector.inference([inputs])
+            
+            assert len(pred[0]['instances']) == features.shape[0]
+            dets, all_dets = self.detector.mask_outputs(pred[0], features)     
+            detection_dict[frame_num] = dets
+            
+            ######################################TrackerPortion
             self.tracker.update_trackers(all_dets, frame_num)
-
-            if frame_num % 75 == 0:
+            
+            if frame_num % 200 == 0:
                 print('Frame Number {}'.format(frame_num))
                 self.tracker.write_outputs()
                 self.counter.workflow()
                 self.tracker.flush()
-
+                '''
+                outfile = os.path.join(self.detector.out_dir, 
+                    self.detector.cam_ident + '.pkl' )
+                with open(outfile, 'wb') as handle:
+                    pickle.dump(detection_dict, handle)
+                '''
+            
             frame_num += 1
+        
+        end_process_time = time.time()
+        elapsed = end_process_time - start_process_time
+
+        print('Elapsed: {} seconds'.format(elapsed))
+        print('Num of Frames: {}'.format(frame_num))
         
         outfile = os.path.join(self.detector.out_dir, 
             self.detector.cam_ident + '.pkl' )
@@ -97,6 +106,7 @@ class DetectionTracker:
             pickle.dump(detection_dict, handle)
 
         self.tracker.write_outputs()
+        self.counter.workflow()
         self.counter.track1txt.close()
         '''
         pid = subprocess.Popen([sys.executable, "bezier_online.py config/cam_13.ini"], 
