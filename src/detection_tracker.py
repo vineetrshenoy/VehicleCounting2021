@@ -80,7 +80,7 @@ class DetectionTracker:
             ######################################TrackerPortion
             self.tracker.update_trackers(all_dets, frame_num)
             
-            if frame_num % 200 == 0:
+            if frame_num % 150 == 0:
                 print('Frame Number {}'.format(frame_num))
                 self.tracker.write_outputs()
                 self.counter.workflow()
@@ -107,7 +107,8 @@ class DetectionTracker:
 
         self.tracker.write_outputs()
         self.counter.workflow()
-        self.counter.track1txt.close()
+        #self.counter.track1txt.close()
+        self.counter.percam_txt.close()
         '''
         pid = subprocess.Popen([sys.executable, "bezier_online.py config/cam_13.ini"], 
             stdout=subprocess.PIPE, 

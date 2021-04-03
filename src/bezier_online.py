@@ -34,7 +34,8 @@ class BezierOnline:
         append_write = 'w'
         if os.path.exists(text_file):
             append_write = 'a'
-        self.track1txt = open(text_file, append_write)
+        #self.track1txt = open(text_file, append_write)
+        self.percam_txt = open(os.path.join(self.out_dir, self.cam_ident + '.txt'), 'w')
 
 
     
@@ -284,20 +285,16 @@ class BezierOnline:
 
                   
             mvt_id = self.project_on_movements(coor)
-            gen_time = int(time.time() - self.start_time)
+            gen_time = round((time.time() - self.start_time), 2)
             if mvt_id != -1:
                 frame_id = tracked_vehicle[N - 1][0] + 1 #tracker is zero-indexed
-<<<<<<< HEAD
                 video_id = int(self.default['vid_id'])
-=======
-                video_id = 1 #this is only set for the non-server submission
->>>>>>> main
 
                 if cat_id == 3: #For the submission purposes, treat buses/truck the same
                     cat_id = 2
                 #self.track1txt.write('{} {} {} {} {}\n'.format(video_id, frame_id, mvt_id, cat_id, trackerID))
-                self.track1txt.write('{} {} {} {} {}\n'.format(gen_time, video_id, frame_id, mvt_id, cat_id))
-
+                #self.track1txt.write('{} {} {} {} {}\n'.format(gen_time, video_id, frame_id, mvt_id, cat_id))
+                self.percam_txt.write('{} {} {} {} {}\n'.format(gen_time, video_id, frame_id, mvt_id, cat_id))
         
 
     ##
