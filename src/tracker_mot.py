@@ -9,7 +9,7 @@ import app_logger
 import configparser
 import torch
 
-from deep_sort.deep_sort.tracker import Tracker
+#from deep_sort.deep_sort.tracker import Tracker
 from tracker_mot_zhong.tr_mot.multitracker import STrack, JDETracker
 
 logger = app_logger.get_logger('tracker')

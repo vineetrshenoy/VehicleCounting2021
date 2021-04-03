@@ -81,8 +81,14 @@ class DetectionTracker:
             if frame_num % 200 == 0:
                 print('Frame Number {}'.format(frame_num))
                 self.tracker.write_outputs()
-                #self.counter.workflow()
+                self.counter.workflow()
                 self.tracker.flush()
+                '''
+                outfile = os.path.join(self.detector.out_dir, 
+                    self.detector.cam_ident + '.pkl' )
+                with open(outfile, 'wb') as handle:
+                    pickle.dump(detection_dict, handle)
+                '''
             
             frame_num += 1
         
@@ -90,7 +96,7 @@ class DetectionTracker:
         elapsed = end_process_time - start_process_time
 
         print('Elapsed: {} seconds'.format(elapsed))
-        
+        print('Num of Frames: {}'.format(frame_num))
         
         outfile = os.path.join(self.detector.out_dir, 
             self.detector.cam_ident + '.pkl' )
@@ -98,7 +104,7 @@ class DetectionTracker:
             pickle.dump(detection_dict, handle)
 
         self.tracker.write_outputs()
-        #self.counter.workflow()
+        self.counter.workflow()
         self.counter.track1txt.close()
         '''
         pid = subprocess.Popen([sys.executable, "bezier_online.py config/cam_13.ini"], 

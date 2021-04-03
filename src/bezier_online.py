@@ -23,11 +23,11 @@ class BezierOnline:
         self.default = config['DEFAULT']
         self.cam_ident = self.default['cam_name']
         self.bezier_curves = Helper.load_bezier_curve(os.path.join(self.config['curves'], self.cam_ident + '.txt'))
-
+        self.vid_id = int(self.default['vid_id'])
         
         self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'counting_output', self.cam_ident) #set output directory
         os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
-        self.track1txt = open(os.path.join(self.out_dir, self.cam_ident + '.txt'), 'a')
+        self.track1txt = open(os.path.join(self.out_dir, self.cam_ident + '.txt'), 'w')
 
 
     
@@ -221,7 +221,6 @@ class BezierOnline:
         if coor.shape[1] < int(self.config['MIN_LENGTH']):
             return -1
 
-        THRESHOLD = float(self.config['THRESHOLD'])
         mvt_scores = np.zeros(len(self.bezier_curves.keys()))
         for mvt in self.bezier_curves.keys():
 
@@ -281,7 +280,7 @@ class BezierOnline:
 
             if mvt_id != -1:
                 frame_id = tracked_vehicle[N - 1][0] + 1 #tracker is zero-indexed
-                video_id = 1
+                video_id = 1 #this is only set for the non-server submission
 
                 if cat_id == 3: #For the submission purposes, treat buses/truck the same
                     cat_id = 2
@@ -322,7 +321,39 @@ class BezierOnline:
         #self.track1txt.close()
 
 
-    
+    ##
+    # Begins the bezier matching process.
+    # @param data The pickle file stored from tracker.py 
+    # @returns DefaultPredictor, cfg object
+    #
+    def run_counting(self):
+        
+        tracker_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'tracker_output', self.cam_ident)
+        category_dict = {'Car': 1, 'Truck': 2, 'Bus': 3}
+
+        '''
+        bezier_file = os.path.join(tracker_dir, self.basic['bezier_idx'])
+        with open(bezier_file, 'rb') as f:
+            indices = pickle.load(f)
+        '''
+
+        files = glob.glob(os.path.join(tracker_dir, 'Track*'))
+
+        for clsname in ['Car', 'Bus', 'Truck']:
+
+            
+            filename = 'Track_{}_{}.pkl'.format(clsname, self.default['cam_name'])
+            tracker_file = os.path.join(tracker_dir, filename)
+            with open(tracker_file, 'rb') as f:              
+                
+                tracker_results = pickle.load(f)
+
+                if len(tracker_results.keys()) == 0:
+                    continue
+
+                self.process_tracking_results(tracker_results, clsname, {clsname: tracker_results.keys()})
+
+        self.track1txt.close()
 
 
 if __name__ == '__main__':
@@ -339,7 +370,8 @@ if __name__ == '__main__':
         4: np.array([[2, 600, 1275], [500, 450, 545]])
     }
     
-    BezierOnline().workflow()
+    #BezierOnline().workflow()
+    BezierOnline().run_counting()
     '''
     with open('cam_10.pkl', 'wb') as f:
         pickle.dump(bezier_curves, f)
