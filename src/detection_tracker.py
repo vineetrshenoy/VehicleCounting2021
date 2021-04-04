@@ -109,12 +109,12 @@ class DetectionTracker:
                 self.counter.workflow()
                 self.tracker.flush()
                 rem = frame_num // 200
-                '''
+                
                 outfile = os.path.join(self.detector.out_dir, 
                     self.detector.cam_ident + '.pkl' )
                 with open(outfile, 'wb') as handle:
                     pickle.dump(detection_dict, handle)
-                '''
+                
             
         
         end_process_time = time.time()
