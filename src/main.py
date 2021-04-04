@@ -43,8 +43,8 @@ def main() -> None:
 
     DetectionTracker().workflow()
     #VisualizeDetector().run_visualizations()
-    VisualizeTracker().run_visualizations()
-    VisualizeCounting().workflow()
+    #VisualizeTracker().run_visualizations()
+    #VisualizeCounting().workflow()
 
 
 
