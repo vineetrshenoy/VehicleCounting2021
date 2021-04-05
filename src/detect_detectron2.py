@@ -108,6 +108,7 @@ class DetectDetectron:
     def inference(self,batched_inputs, do_postprocess: bool = True):
 
         assert not self.model.training
+        assert len(batched_inputs) != 0
 
         images = self.model.preprocess_image(batched_inputs)
         features = self.model.backbone(images.tensor)

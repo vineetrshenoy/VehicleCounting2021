@@ -12,3 +12,4 @@ fontlist*
 venv/
 scripts/*.out
 src/CenterTrack/*
+scripts/perclass_all/
