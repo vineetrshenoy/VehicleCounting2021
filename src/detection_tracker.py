@@ -120,7 +120,7 @@ class DetectionTracker:
         end_process_time = time.time()
         elapsed = end_process_time - start_process_time
 
-        print('Elapsed: {} seconds'.format(elapsed))
+        print('Elapsed {}: {} seconds'.format(self.detector.default['cam_name'], elapsed))
         print('Num of Frames: {}'.format(frame_num))
         
         outfile = os.path.join(self.detector.out_dir, 
