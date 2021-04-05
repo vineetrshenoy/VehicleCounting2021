@@ -10,3 +10,4 @@ scripts/*.out.*
 fontlist*
 venv/
 scripts/*.out
+scripts/perclass_all/
