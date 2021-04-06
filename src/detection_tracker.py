@@ -45,7 +45,7 @@ class DetectionTracker:
         #self.tracker = DeepsortTracker()
         #self.tracker = SortTracker()
         self.bs = int(self.basic['batch_size'])
-        self.counter = BezierOnline()
+        self.counter = None #BezierOnline()
         self.video = os.path.join(self.detector.basic['data_dir'], 
             self.detector.default['cam_name']) + '.mp4'
     
@@ -106,7 +106,10 @@ class DetectionTracker:
             if frame_num // 200 > rem:
                 print('Frame Number {}'.format(frame_num))
                 self.tracker.write_outputs()
-                self.counter.workflow()
+                #self.counter.workflow()
+                conf = 'config/{}.ini'.format(self.detector.cam_ident)
+                pid = subprocess.Popen([sys.executable, "src/bezier_online.py", conf], 
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
                 self.tracker.flush()
                 rem = frame_num // 200
                 
@@ -129,8 +132,9 @@ class DetectionTracker:
             pickle.dump(detection_dict, handle)
 
         self.tracker.write_outputs()
-        self.counter.workflow()
-        self.counter.track1txt.close()
+        BezierOnline().workflow()
+        #self.counter.workflow()
+        #self.counter.track1txt.close()
         
 
 

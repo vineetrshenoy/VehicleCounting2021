@@ -27,7 +27,12 @@ class BezierOnline:
         
         self.out_dir = os.path.join(self.basic['output_dir'], self.basic['job_name'], 'counting_output', self.cam_ident) #set output directory
         os.makedirs(self.out_dir, exist_ok=True) #Create tracker_output folder
-        self.track1txt = open(os.path.join(self.out_dir, self.cam_ident + '.txt'), 'w')
+
+        textfile = os.path.join(self.out_dir, self.cam_ident + '.txt')
+        append_write = 'w'
+        if os.path.exists(textfile):
+            append_write = 'a'
+        self.track1txt = open(textfile, append_write)
 
 
     
@@ -318,7 +323,7 @@ class BezierOnline:
 
                 self.process_tracking_results(tracker_results, clsname, indices)
 
-        #self.track1txt.close()
+        self.track1txt.close()
 
 
     ##
@@ -361,17 +366,8 @@ if __name__ == '__main__':
    
     
     
-    
-    bezier_curves = {
-        
-        1: np.array([[990, 2], [150, 320]]),
-        2: np.array([[2, 1060], [400, 190]]),
-        3: np.array([[1275, -50, 1060], [460, 400, 190]]),
-        4: np.array([[2, 600, 1275], [500, 450, 545]])
-    }
-    
-    #BezierOnline().workflow()
-    BezierOnline().run_counting()
+    BezierOnline().workflow()
+    #BezierOnline().run_counting()
     '''
     with open('cam_10.pkl', 'wb') as f:
         pickle.dump(bezier_curves, f)
