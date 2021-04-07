@@ -10,6 +10,7 @@ import time
 import app_logger
 import subprocess
 from helper import Helper
+from datetime import datetime
 
 from detect_detectron2 import DetectDetectron
 from sort_tracker import SortTracker
@@ -69,7 +70,7 @@ class DetectionTracker:
         return inputs, count
      
     def workflow(self):
-
+        print('{}'.format(datetime.now()))
         cap = cv2.VideoCapture(self.video)
         detection_dict = {}
         rem = 0
@@ -105,12 +106,12 @@ class DetectionTracker:
                 self.tracker.update_trackers(all_dets, frame_num)
             
             frame_num += count
-            if frame_num // 150 > rem:
+            if frame_num // 100 > rem:
                 print('Frame Number {}'.format(frame_num))
                 self.tracker.write_outputs()
                 self.counter.workflow()
                 self.tracker.flush()
-                rem = frame_num // 150
+                rem = frame_num // 100
                 
                 outfile = os.path.join(self.detector.out_dir, 
                     self.detector.cam_ident + '.pkl' )
