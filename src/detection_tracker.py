@@ -18,6 +18,15 @@ from tracker_deepsort import DeepsortTracker
 from tracker_mot import MOTTracker
 from bezier_online import BezierOnline
 
+from nvidia.dali.pipeline import Pipeline
+import nvidia.dali.ops as ops
+import nvidia.dali.types as types
+from nvidia.dali import fn
+import argparse
+from nvidia.dali.plugin.pytorch import DALIGenericIterator
+from nvidia.dali.types import DALIImageType
+
+from tqdm import tqdm
 
 logger = app_logger.get_logger('detectron')
 
@@ -26,6 +35,32 @@ basic_config.read('config/basic.ini')
 
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
+
+
+class VideoPipe(Pipeline):
+    def __init__(self, batch_size, num_threads, device_id, data, shuffle, sequence_length=1):
+        super(VideoPipe, self).__init__(batch_size, num_threads, device_id, seed=16)
+        self.input = ops.VideoReader(device="gpu", filenames=data, sequence_length=sequence_length,
+                                     shard_id=0, num_shards=1,
+                                     random_shuffle=shuffle, initial_fill=10)
+        self.colorspace = ops.ColorSpaceConversion(
+            image_type=DALIImageType.RGB, 
+            output_type=DALIImageType.BGR,
+            device='gpu'
+        )
+            
+        self.resize = ops.Resize(resize_shorter=800, max_size=1333, device="gpu")
+        self.transpose = ops.Transpose(perm=[0, 3, 1, 2], device='gpu')
+        
+        
+    def define_graph(self):
+        
+        output = self.input(name="Reader")
+        #output = self.colorspace(output)
+        output = self.resize(output)
+        output = self.transpose(output)
+        return output
+
 
 
 class DetectionTracker:
@@ -68,6 +103,95 @@ class DetectionTracker:
             inputs.append(inp)
 
         return inputs, count
+
+
+    def dali_batch(self, batch):
+
+        dims = batch.shape     
+        inputs = []   
+
+        for i in range(0, dims[0]):
+
+            img = batch[i]
+            img_pred = img[[2, 1, 0], :]
+            height = int(self.default['height'])    
+            width = int(self.default['width'])
+
+
+            inp = {'image': img, 'height':height, 'width': width}
+
+            inputs.append(inp)
+        
+        return inputs
+
+
+
+    def workflow_dali(self):
+
+        pipe = VideoPipe(batch_size=1, num_threads=1, device_id=0, data=self.video, sequence_length=16, shuffle=False)
+        pipe.build()    
+        dali_iter = DALIGenericIterator(pipe, ['data'], pipe.epoch_size("Reader"), fill_last_batch=False)
+        frame_num = 1
+        count = 0
+        
+        detection_dict = {}
+        rem = 0
+        start_process_time = time.time()
+        
+        for i, data in tqdm(enumerate(dali_iter)):
+            batch = data[0]['data'][0, :, :, :, :]
+            img_batch = self.dali_batch(batch)
+
+            with torch.no_grad():
+                #pred = self.detector.model([inputs])
+                assert len(img_batch) != 0
+                pred, features = self.detector.inference(img_batch)
+
+            count = len(img_batch)
+            len_feat = 0
+            for i in range(0, count):
+                len_feat_i = len(pred[i]['instances'])
+                features_i = features[len_feat:(len_feat + len_feat_i), :]
+                
+                assert len(pred[i]['instances']) == features_i.shape[0]
+                dets, all_dets = self.detector.mask_outputs(pred[i], features_i)
+                detection_dict[frame_num + i] = dets
+            
+                ######################################TrackerPortion
+                self.tracker.update_trackers(all_dets, (frame_num +i))
+
+
+            frame_num += count
+            if frame_num // 200 > rem:
+                print('Frame Number {}'.format(frame_num))
+                self.tracker.write_outputs()
+                self.counter.workflow()
+                self.tracker.flush()
+                rem = frame_num // 200
+                
+                outfile = os.path.join(self.detector.out_dir, 
+                    self.detector.cam_ident + '.pkl' )
+                with open(outfile, 'wb') as handle:
+                    pickle.dump(detection_dict, handle)
+                    
+                
+            
+        end_process_time = time.time()
+        elapsed = end_process_time - start_process_time
+
+        print('Elapsed {}: {} seconds'.format(self.detector.default['cam_name'], elapsed))
+        print('Num of Frames: {}'.format(frame_num))
+        
+        outfile = os.path.join(self.detector.out_dir, 
+            self.detector.cam_ident + '.pkl' )
+        with open(outfile, 'wb') as handle:
+            pickle.dump(detection_dict, handle)
+
+        self.tracker.write_outputs()
+        self.counter.workflow()
+        self.counter.track1txt.close()
+
+
      
     def workflow(self):
         print('{}'.format(datetime.now()))
@@ -145,16 +269,7 @@ class DetectionTracker:
 
 if __name__ == '__main__':
 
-    DetectionTracker().workflow()
-    #pid = subprocess.Popen(["python", "/fs/diva-scratch/vshenoy/VehicleCounting/src/bezier_online.py /fs/diva-scratch/vshenoy/VehicleCounting/config/cam_13.ini"]).pid
-    '''
-    filename = '/fs/diva-scratch/vshenoy/VehicleCounting/vc_outputs/aic/tracker_output/cam_13/bezier_idx.pkl'
-    with open(filename, 'rb') as f:
-        data = pickle.load(f)
-    idx = data[1]
-    for list1 in idx:
-        for list2 in list1:
-            print(list2.hits)
-    '''
+    #DetectionTracker().workflow()
+    DetectionTracker().workflow_dali()
 
     print('Hello World')
