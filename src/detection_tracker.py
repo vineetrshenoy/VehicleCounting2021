@@ -130,7 +130,7 @@ class DetectionTracker:
 
         pipe = VideoPipe(batch_size=1, num_threads=1, device_id=0, data=self.video, sequence_length=16, shuffle=False)
         pipe.build()    
-        dali_iter = DALIGenericIterator(pipe, ['data'], pipe.epoch_size("Reader"), fill_last_batch=False)
+        dali_iter = DALIGenericIterator(pipe, ['data'], pipe.epoch_size("Reader"), fill_last_batch=True)
         frame_num = 1
         count = 0
         
@@ -162,12 +162,12 @@ class DetectionTracker:
 
 
             frame_num += count
-            if frame_num // 200 > rem:
+            if frame_num // 100 > rem:
                 print('Frame Number {}'.format(frame_num))
                 self.tracker.write_outputs()
                 self.counter.workflow()
                 self.tracker.flush()
-                rem = frame_num // 200
+                rem = frame_num // 100
                 
                 outfile = os.path.join(self.detector.out_dir, 
                     self.detector.cam_ident + '.pkl' )
@@ -189,7 +189,7 @@ class DetectionTracker:
 
         self.tracker.write_outputs()
         self.counter.workflow()
-        self.counter.track1txt.close()
+        self.counter.percam_txt.close()
 
 
      

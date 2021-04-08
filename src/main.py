@@ -41,7 +41,7 @@ def main() -> None:
     #logger.info('Visualize Counting for {}'.format(config['DEFAULT']['cam_name']))
     #VisualizeCounting().workflow()
 
-    DetectionTracker().workflow()
+    DetectionTracker().workflow_dali()
     #VisualizeTracker().run_visualizations()
     #VisualizeCounting().workflow()
 
