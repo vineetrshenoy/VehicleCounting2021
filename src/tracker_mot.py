@@ -42,13 +42,13 @@ class MOTTracker():
         self.buffer_size = 30 #int(feature_buffer_size * fps)
         max_age = 5
         max_time_lost = max_age * int(self.default['fps'])
-        feat_thresh = 0.7
+        feat_thresh = 0.8
         min_iou = 0.2
 
         self.trackers = {
-            'Car' : JDETracker(max_time_lost, feat_thresh, 1 - min_iou, 1 - min_iou/2),
-            'Bus' : JDETracker(max_time_lost, feat_thresh, 1 - min_iou, 1 - min_iou/2),
-            'Truck': JDETracker(max_time_lost, feat_thresh, 1 - min_iou, 1 - min_iou/2)
+            'Car' : JDETracker(15, feat_thresh, 1 - min_iou, 1 - min_iou/2),
+            'Bus' : JDETracker(15, feat_thresh, 1 - min_iou, 1 - min_iou/2),
+            'Truck': JDETracker(15, feat_thresh, 1 - min_iou, 1 - min_iou/2)
         }
         
         self.tracklets = {'Car': set(), 'Bus': set(), 'Truck': set()}
