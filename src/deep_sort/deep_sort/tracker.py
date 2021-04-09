@@ -97,8 +97,8 @@ class Tracker:
         self.metric.partial_fit(
             np.asarray(features), np.asarray(targets), active_targets)
 
-        temp = list(filter(lambda x: x.track_id in self.confirmed_tracks, deleted_tracks))
-        return temp
+        valid_ids = list(filter(lambda x: x.track_id in self.confirmed_tracks, deleted_tracks))
+        return valid_ids
 
     def _match(self, detections):
 
