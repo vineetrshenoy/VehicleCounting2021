@@ -191,6 +191,9 @@ class BezierOnline:
 
         if diff > diffthresh and len(t) < int(self.config['tracklength']):
             return -1
+
+        if (np.abs(t)[-1]  - np.abs(t)[0]) < 0.3:
+            return -1
         
         start_end = np.array([coor[:,0], coor[:, -1]]).T
         distance =  None
