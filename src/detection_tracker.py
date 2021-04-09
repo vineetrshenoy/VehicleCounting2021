@@ -76,9 +76,9 @@ class DetectionTracker:
         self.config = config['DETECTION']
 
         self.detector = DetectDetectron()
-        self.tracker = MOTTracker()
+        #self.tracker = MOTTracker()
         #self.tracker = DeepsortTracker()
-        #self.tracker = SortTracker()
+        self.tracker = SortTracker()
         self.bs = int(self.basic['batch_size'])
         self.counter = BezierOnline()
         self.video = os.path.join(self.detector.basic['data_dir'], 
