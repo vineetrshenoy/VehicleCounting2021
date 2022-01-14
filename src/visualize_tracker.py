@@ -97,7 +97,7 @@ class VisualizeTracker():
 
         framepkl, trackpkl = self.load_files() #loads tracking files
 
-        data_dir = '/vulcanscratch/vshenoy/aicity_2020/dataset_A_frames'
+        data_dir = '/cis/net/r10/data/vshenoy/AIC21_Track1_Vehicle_Counting/dataset_A_frames'
 
         images = os.listdir(os.path.join(data_dir, self.cam_ident)) #gets the images
         images = sorted(images)

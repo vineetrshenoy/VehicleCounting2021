@@ -76,7 +76,7 @@ class VisualizeDetector():
     # @returns framepkl, trackpkl
     #
     def run_visualizations(self):
-        data_dir = '/vulcanscratch/vshenoy/aicity_2020/dataset_A_frames'
+        data_dir = '/cis/net/r10/data/vshenoy/AIC21_Track1_Vehicle_Counting/dataset_A_frames'
         with open(os.path.join(self.out_dir, self.cam_ident + '.pkl'), 'rb') as f:
             detections = pickle.load(f)
 

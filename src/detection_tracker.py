@@ -13,8 +13,8 @@ from helper import Helper
 
 from detect_detectron2 import DetectDetectron
 from sort_tracker import SortTracker
-from tracker_deepsort import DeepsortTracker
-from tracker_mot import MOTTracker
+#from tracker_deepsort import DeepsortTracker
+#from tracker_mot import MOTTracker
 from bezier_online import BezierOnline
 
 from nvidia.dali.pipeline import Pipeline
